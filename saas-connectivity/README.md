@@ -7,7 +7,7 @@ No virtual appliance is needed. The guide estimates about an hour.
 
 **What we built:** `saas-connectivity-demo/` is a working SaaS connector. It supports `std:test-connection`,
 `std:account:list`, `std:account:read`, `std:entitlement:list` and `std:entitlement:read`. It is deployed to
-our tenant as connector `saas-connectivity-demo`, and source **"SaaS Connectivity Demo (Hack Day)"** is
+our tenant as connector `saas-connectivity-demo`, and source **"UCSF SaaS Connectivity Demo (Hack Day)"** is
 aggregated: **50 accounts and 8 entitlements**, with group names resolved and `admin` marked privileged.
 
 ## Status: done (steps 1–10)

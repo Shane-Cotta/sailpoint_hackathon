@@ -3,8 +3,8 @@
 **The track** ([guide](https://developer.sailpoint.com/hack-day/identity-workflows)): turn an identity event into a message. You build an HR feed (a delimited-file source plus an identity profile), then finish a Workflow Studio workflow. It fires on `idn:identity-created`, waits 1 minute, looks up the new hire and their manager, and sends an onboarding email that includes the new hire's name, department and job title, plus the manager's name and email.
 
 **What we built**
-- `Shane Cotta Identity Onboarding` (id `499d37f2-bbab-433d-b285-524b559c0338`): the track's template plus our **Send Email** step. We created it in the tenant through the Workflows API (it is disabled) and ran it with Test Workflow. The run went green, and the email it rendered had all 6 required values ([evidence](evidence/test-run-juan-hamilton.txt)).
-- `Shane Cotta Identity Onboarding (manager check)` (id `4f178d1b-…`): the "survive a missing manager" stretch goal. A choice step sends a "no manager on record, routing to HR" email instead of failing. We tested both branches and both went green.
+- `UCSF Identity Onboarding` (id `499d37f2-bbab-433d-b285-524b559c0338`): the track's template plus our **Send Email** step. We created it in the tenant through the Workflows API (it is disabled) and ran it with Test Workflow. The run went green, and the email it rendered had all 6 required values ([evidence](evidence/test-run-juan-hamilton.txt)).
+- `UCSF Identity Onboarding (manager check)` (id `4f178d1b-…`): the "survive a missing manager" stretch goal. A choice step sends a "no manager on record, routing to HR" email instead of failing. We tested both branches and both went green.
 - Two more definitions that we validated offline but did **not** create in the tenant: `to-manager` (a stretch goal) and `flagged-report-to-manager` (the main-hack tie-in, see below).
 - `scripts/`: `build_workflow.py` builds the JSON from the guide's template, `validate_workflow.py` is an offline linter, and `isc.py` is a stdlib-only API client (create, update, test, history).
 
@@ -21,7 +21,7 @@ python3 scripts/isc.py update workflow/identity-onboarding.workflow.json   # pus
 python3 scripts/isc.py find-identity Juan.Hamilton                          # pick a test identity that has a manager
 python3 scripts/isc.py test workflow/identity-onboarding.workflow.json <identity-id> <name>
 ```
-No CLI? Use the UI instead: Admin → Workflows → *Shane Cotta Identity Onboarding* → Edit in Builder → click **Send Onboarding Email** → replace the recipient → Save → Test Workflow, and paste `data/test-payload.example.json` with a real identity id.
+No CLI? Use the UI instead: Admin → Workflows → *UCSF Identity Onboarding* → Edit in Builder → click **Send Onboarding Email** → replace the recipient → Save → Test Workflow, and paste `data/test-payload.example.json` with a real identity id.
 
 **Status: partly done. The workflow is built and tested; the end-to-end joiner run is blocked.**
 - **Recipient:** `shane.cotta+hackday@gmail.com` (set 2026-10-05, pushed to both tenant workflows; delivery confirmed in the inbox with all fields rendered).
@@ -30,7 +30,7 @@ No CLI? Use the UI instead: Admin → Workflows → *Shane Cotta Identity Onboar
 
 **Main-hack tie-in (manager team access review)**
 Our MCP tools (`review_team_access`, `get_identity_access`, `get_manager_pending_reviews`) find problems. A workflow is a good way to *act* on them without code:
-- ✅ **Live:** `workflow/flagged-report-to-manager.workflow.json` is deployed as *Shane Cotta Flagged Report to Manager* (`5e7f8d19-…`, enabled, external trigger only) and called by the MCP server's **`notify_manager`** tool. The first live run delivered the email for Brandon.Mason → Douglas.Flores to the demo inbox. It uses an **EXTERNAL trigger**, so the MCP server POSTs `{identityId, flag, detail}` to it when a report is flagged (a leaver who still has access, access that is privileged or unusual compared with peers, or an overdue certification). The workflow looks up the report and the manager and emails the manager, using the same Get Identity → Get Manager → Send Email pattern as this track.
+- ✅ **Live:** `workflow/flagged-report-to-manager.workflow.json` is deployed as *UCSF Flagged Report to Manager* (`5e7f8d19-…`, enabled, external trigger only) and called by the MCP server's **`notify_manager`** tool. The first live run delivered the email for Brandon.Mason → Douglas.Flores to the demo inbox. It uses an **EXTERNAL trigger**, so the MCP server POSTs `{identityId, flag, detail}` to it when a report is flagged (a leaver who still has access, access that is privileged or unusual compared with peers, or an overdue certification). The workflow looks up the report and the manager and emails the manager, using the same Get Identity → Get Manager → Send Email pattern as this track.
 - An event version could react on its own: `idn:identity-attributes-changed` filtered to lifecycle → inactive would mean "a leaver just appeared, tell their manager to review." The guide's later stretch goals (Manage Access, a Create Form approval) would turn the alert into a one-click revoke.
 
 **External-trigger gotchas** (found while wiring up `notify_manager`):

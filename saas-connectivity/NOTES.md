@@ -8,7 +8,7 @@ Run date: 2026-10-05. Tenant: `devrel-ga-25044` (shared demo tenant, PAT user `h
 |---|---|
 | Connector (alias) | `saas-connectivity-demo`, id `3dd9a454-9627-4e5f-8c9e-10daaf9e00f5`, version 2 (tag `latest`) |
 | Connector as seen by `/v3/connectors` | name `SaaS Connectivity Demo (tag: latest)`, scriptName/type `a99fcdeb-2667-4ec9-9a20-f99588f9046a` |
-| Source | `SaaS Connectivity Demo (Hack Day)`, id `796ddbe4f7844c01a6d43f0cb39b85d4`, owner `hack.day` |
+| Source | `UCSF SaaS Connectivity Demo (Hack Day)`, id `796ddbe4f7844c01a6d43f0cb39b85d4`, owner `hack.day` |
 | Aggregated | 50 accounts, 8 entitlements; `admin` entitlement set `privileged=true` |
 | Side effect | Each uncorrelated account got its own identity (for example "Gabriel Rossi"), so the tenant has about 50 new identities |
 

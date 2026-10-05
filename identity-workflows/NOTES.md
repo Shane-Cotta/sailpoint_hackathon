@@ -28,7 +28,7 @@ Run date: 2026-10-05. Tenant `devrel-ga-25044` (pod `devrel01-useast1`). PAT ide
 | Inventory | `GET /v3/sources`, `GET /v3/identity-profiles` (read-only; used to confirm the mini-hack objects are missing) |
 
 ## Results
-- Created `Shane Cotta Identity Onboarding` = `499d37f2-bbab-433d-b285-524b559c0338` and `Shane Cotta Identity Onboarding (manager check)` = `4f178d1b-976b-4ccf-b355-e6a89ea28ce5`. Both are disabled.
+- Created `UCSF Identity Onboarding` = `499d37f2-bbab-433d-b285-524b559c0338` and `UCSF Identity Onboarding (manager check)` = `4f178d1b-976b-4ccf-b355-e6a89ea28ce5`. Both are disabled.
 - Test `c61df496-…` (main, Juan.Hamilton): all 5 steps Completed. The Send Email input in the history is the rendered message:
   - subject `A new identity Juan.Hamilton has been created in SHF`
   - body `Name: Juan.Hamilton / Department: Engineering / Job title: Staging Developer II / Reports to: Patrick.Jenkins (Patrick.Jenkins@sailpointdemo.com)`
@@ -55,12 +55,12 @@ Run date: 2026-10-05. Tenant `devrel-ga-25044` (pod `devrel01-useast1`). PAT ide
 
 ## UI steps left for you
 Every one of these creates or changes objects in the shared tenant, so they were left for you (with UI admin credentials) or for an explicit go-ahead.
-1. **Source:** Admin → Connections → Sources → Create New → *Delimited File* → Configure. Name `Shane Cotta HR Feed`, Owner `hack.day`, Platform Type Saas → Continue.
+1. **Source:** Admin → Connections → Sources → Create New → *Delimited File* → Configure. Name `UCSF HR Feed`, Owner `hack.day`, Platform Type Saas → Continue.
 2. **Schema:** Your source → Account Management → Account Schema → Upload Schema → `guide-files/workflows-hack-day-schema.csv`. Set Account ID and Account Name to `uid`.
 3. **Manager correlation:** Account Management → Account Correlation → Manager Correlation: Identity Attribute `Name`, Account Attribute `managerUid` → Save.
 4. **Aggregate:** Account Management → Account Aggregation → Import Accounts → drop `guide-files/hr-feed.csv` (8 rows).
-5. **Identity profile:** Admin → Identity Management → Identity Profiles → Create New. Name `Shane Cotta HR Feed`, source = yours. On the Mappings tab: uid←uid, Work Email←email, Family Name←lastname, Given Name←firstname, Department←**department**, Display Name←**fullName**, Job Title←jobTitle, Manager←managerUid. Then Save and Apply Changes. Check that your Margaret Hamilton has Manager = a link to jean.bartik.
-6. **Recipient:** Admin → Workflows → *Shane Cotta Identity Onboarding* → Edit in Builder → *Send Onboarding Email* → Recipient Email Addresses = your inbox → Save. (Or use `build_workflow.py --recipient …` and then `isc.py update …`.) Optionally use Test Workflow with the id of your new Margaret Hamilton.
+5. **Identity profile:** Admin → Identity Management → Identity Profiles → Create New. Name `UCSF HR Feed`, source = yours. On the Mappings tab: uid←uid, Work Email←email, Family Name←lastname, Given Name←firstname, Department←**department**, Display Name←**fullName**, Job Title←jobTitle, Manager←managerUid. Then Save and Apply Changes. Check that your Margaret Hamilton has Manager = a link to jean.bartik.
+6. **Recipient:** Admin → Workflows → *UCSF Identity Onboarding* → Edit in Builder → *Send Onboarding Email* → Recipient Email Addresses = your inbox → Save. (Or use `build_workflow.py --recipient …` and then `isc.py update …`.) Optionally use Test Workflow with the id of your new Margaret Hamilton.
 7. **Enable:** set the workflow to Enabled (or run `python3 scripts/isc.py enable workflow/identity-onboarding.workflow.json`). This is a shared tenant, so consider adding a trigger filter first, for example `$.attributes[?(@.displayName =~ /.*shanecotta.*/)]`, which follows the guide's "Filter at the trigger" stretch goal. Test that filter, because the payload's `displayName` is the uid at creation time.
 8. **Fire:** Your source → Account Aggregation → Import Accounts → `data/hr-feed-with-new-hire.csv` (all 9 rows). Watch Admin → Identities for Robin Vance, then the workflow's Executions, then your inbox.
 9. **Clean-up afterwards (optional):** disable the workflow so it stops reacting to other people's joiners.
