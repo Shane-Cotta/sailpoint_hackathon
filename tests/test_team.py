@@ -127,12 +127,51 @@ def test_outlier_requires_a_real_gap():
     assert "access_outlier" not in _types(_team.team_flags(members), "Cy")
 
 
-def test_privileged_and_no_roles_flags():
+def test_privileged_access_is_medium_when_peers_share_it():
+    root = ("ENTITLEMENT", "root", "Linux", {"privileged": True})
+    members = _team_of(_doc("1", "Ann", access=[root]), _doc("2", "Bob", access=[root]),
+                       _doc("3", "Cy", access=[root]))
+    flags = [f for f in _team.team_flags(members) if f["type"] == "privileged_access"]
+    assert {f["severity"] for f in flags} == {"medium"}
+
+
+def test_privileged_access_nobody_else_has_is_high():
+    admin = ("ENTITLEMENT", "AccountsPayable", "AD", {"privileged": True})
     members = _team_of(
-        _doc("1", "Ann", access=[("ENTITLEMENT", "root", "Linux", {"privileged": True})])
+        _doc("1", "Ann", access=[ROLE]),
+        _doc("2", "Bob", access=[ROLE, admin]),
+        _doc("3", "Cy", access=[ROLE]),
     )
-    flags = _team.team_flags(members)
-    assert _types(flags, "Ann") == {"privileged_access", "no_roles"}
+    flag = next(f for f in _team.team_flags(members) if f["type"] == "privileged_access")
+    assert flag["severity"] == "high"
+    assert flag["items"] == ["AD: AccountsPayable"]
+    assert "no one else" in flag["reason"]
+
+
+def test_no_roles_only_when_the_team_normally_uses_roles():
+    # Nobody has roles (like the demo tenant): not worth flagging anyone.
+    no_role_team = _team_of(_doc("1", "Ann", access=[CRM]), _doc("2", "Bob", access=[CRM]))
+    assert not any(f["type"] == "no_roles" for f in _team.team_flags(no_role_team))
+
+    # Most of the team has a role; the one without stands out.
+    members = _team_of(
+        _doc("1", "Ann", access=[ROLE, CRM]),
+        _doc("2", "Bob", access=[ROLE, CRM]),
+        _doc("3", "Cy", access=[CRM]),
+    )
+    assert _types(_team.team_flags(members), "Cy") == {"no_roles"}
+
+
+def test_missing_baseline_flags_an_unprovisioned_member():
+    base = [ROLE, CRM, ("ENTITLEMENT", "All_Users", "AD", {})]
+    members = _team_of(
+        *[_doc(str(i), f"P{i}", access=base) for i in range(5)],
+        _doc("new", "Newbie", access=[]),
+    )
+    flag = next(f for f in _team.team_flags(members) if f["identity"] == "Newbie")
+    assert flag["type"] == "missing_baseline"
+    assert "Lacks 3 of the 3" in flag["reason"]
+    assert not any(f["type"] == "missing_baseline" for f in _team.team_flags(members[:5]))
 
 
 def test_empty_team_has_no_flags_or_baseline():
@@ -152,11 +191,12 @@ def test_common_access_is_items_most_of_the_team_holds():
 
 
 def test_roster_entry_lists_the_members_flag_types():
-    members = _team_of(_doc("1", "Ann", access=[CRM]))
+    root = ("ENTITLEMENT", "root", "Linux", {"privileged": True})
+    members = _team_of(_doc("1", "Ann", access=[CRM, root]))
     flags = _team.team_flags(members)
     entry = _team.roster_entry(members[0], flags)
-    assert entry["flags"] == ["no_roles"]
-    assert entry["entitlements"] == 1
+    assert entry["flags"] == ["privileged_access"]
+    assert entry["entitlements"] == 2
 
 
 # --- identity resolution -----------------------------------------------------

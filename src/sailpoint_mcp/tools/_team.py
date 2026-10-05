@@ -54,6 +54,9 @@ MIN_TEAM_FOR_PEER_FLAGS = 3
 OUTLIER_FACTOR = 1.5
 OUTLIER_MIN_GAP = 3
 
+# Share of the team that must hold an item for it to count as baseline access.
+BASELINE_SHARE = 0.8
+
 # Lifecycle states, lower-cased, that mean the person should not hold access.
 _LEAVER_MARKERS = ("inactive", "terminat", "leaver", "disabled", "separated")
 
@@ -294,11 +297,15 @@ def team_flags(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
     Each flag is `{"severity", "type", "identity", "reason"}` plus optional
     `items`. The rules are deliberately simple so a manager can verify them:
 
-    * leaver_risk      -- inactive/terminated but still holds access or accounts
-    * privileged_access -- holds access flagged privileged in ISC
-    * unique_access    -- holds items no one else on the team (3+ people) holds
-    * access_outlier   -- accessCount well above the team median (3+ people)
-    * no_roles         -- entitlements granted with no role behind them
+    * leaver_risk       -- inactive/terminated but still holds access or accounts
+    * privileged_access -- holds access flagged privileged in ISC; high severity
+                           when nobody else on the team holds that item
+    * unique_access     -- holds items no one else on the team (3+ people) holds
+    * access_outlier    -- accessCount well above the team median (3+ people)
+    * missing_baseline  -- lacks most of what the rest of the team has (3+
+                           people) -- usually an onboarding or mover gap
+    * no_roles          -- entitlements with no role behind them, only raised
+                           when most of the team *does* get access via roles
     """
     flags: list[dict[str, Any]] = []
     peer_rules = len(members) >= MIN_TEAM_FOR_PEER_FLAGS
@@ -310,11 +317,24 @@ def team_flags(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
     counts = [m["access_count"] for m in members if isinstance(m.get("access_count"), int)]
     median = statistics.median(counts) if counts else 0
 
+    # Items nearly everyone holds. Someone missing most of them stands out.
+    baseline = {
+        key
+        for key, n in holders.items()
+        if peer_rules and n >= BASELINE_SHARE * len(members)
+    }
+    # Only complain about "no roles" in a team that normally uses roles.
+    team_uses_roles = (
+        sum(1 for m in members if (m.get("access") or {}).get("roles")) * 2 >= len(members)
+    )
+
     for member in members:
         name = member.get("name") or member.get("id")
         access = member.get("access") or {}
         total = member.get("access_count") or 0
         n_accounts = sum((access.get("accounts") or {}).values())
+        keys = _access_keys(member)
+        unique = sorted(key.split("|", 1)[1] for key in keys if holders[key] == 1)
 
         if is_leaver(member) and (total or n_accounts):
             flags.append(
@@ -330,20 +350,23 @@ def team_flags(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
             )
 
         if access.get("privileged"):
+            privileged_unique = (
+                sorted(set(access["privileged"]) & set(unique)) if peer_rules else []
+            )
+            reason = f"Holds {len(access['privileged'])} privileged item(s)"
+            if privileged_unique:
+                reason += f", {len(privileged_unique)} of which no one else on the team has"
             flags.append(
                 {
-                    "severity": "medium",
+                    "severity": "high" if privileged_unique else "medium",
                     "type": "privileged_access",
                     "identity": name,
-                    "reason": f"Holds {len(access['privileged'])} privileged item(s).",
-                    "items": access["privileged"][:_MAX_ITEMS_PER_FLAG],
+                    "reason": reason + ".",
+                    "items": (privileged_unique or access["privileged"])[:_MAX_ITEMS_PER_FLAG],
                 }
             )
 
         if peer_rules:
-            unique = sorted(
-                key.split("|", 1)[1] for key in _access_keys(member) if holders[key] == 1
-            )
             if unique:
                 flags.append(
                     {
@@ -369,15 +392,30 @@ def team_flags(members: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     }
                 )
 
-        if access.get("entitlements") and not access.get("roles"):
+            missing = sorted(key.split("|", 1)[1] for key in baseline - keys)
+            if baseline and len(missing) * 2 > len(baseline):
+                flags.append(
+                    {
+                        "severity": "low",
+                        "type": "missing_baseline",
+                        "identity": name,
+                        "reason": (
+                            f"Lacks {len(missing)} of the {len(baseline)} items nearly "
+                            "everyone else on the team has -- possibly not fully onboarded."
+                        ),
+                        "items": missing[:_MAX_ITEMS_PER_FLAG],
+                    }
+                )
+
+        if team_uses_roles and access.get("entitlements") and not access.get("roles"):
             flags.append(
                 {
                     "severity": "low",
                     "type": "no_roles",
                     "identity": name,
                     "reason": (
-                        f"Has {len(access['entitlements'])} entitlement(s) but no role -- "
-                        "access was granted piecemeal rather than by job function."
+                        f"Has {len(access['entitlements'])} entitlement(s) but no role, "
+                        "unlike most of the team -- access was granted piecemeal."
                     ),
                 }
             )
@@ -400,7 +438,6 @@ def roster_entry(member: dict[str, Any], flags: Iterable[dict[str, Any]]) -> dic
         "roles": len(access.get("roles") or []),
         "access_profiles": len(access.get("access_profiles") or []),
         "entitlements": len(access.get("entitlements") or []),
-        "account_sources": sorted((access.get("accounts") or {}).keys()),
         "flags": flag_types,
     }
     return {k: v for k, v in entry.items() if v not in (None, [], "")}
