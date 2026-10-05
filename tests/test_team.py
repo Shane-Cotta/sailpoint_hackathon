@@ -260,6 +260,20 @@ def test_summarize_request_drops_empty_fields():
     assert req == {"requested_for": "Bob", "access": "Salesforce Admin", "state": "EXECUTING"}
 
 
+def test_as_dict_keeps_read_only_fields_of_real_sdk_models():
+    from sailpoint.certifications.models.identity_certification_dto import (
+        IdentityCertificationDto,
+    )
+
+    cert = IdentityCertificationDto(
+        id="c1", name="Q4", completed=False, decisions_made=1, decisions_total=4
+    )
+    data = as_dict(cert)
+    assert data["id"] == "c1"
+    assert data["decisionsMade"] == 1
+    assert summarize_certification(data)["progress"] == "1/4 decisions (25%)"
+
+
 def test_as_dict_unwraps_anyof_models():
     class Inner:
         def to_dict(self):

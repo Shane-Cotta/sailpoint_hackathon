@@ -27,12 +27,20 @@ MAX_REPORTS_FOR_REQUESTS = 25
 
 
 def as_dict(model: Any) -> dict[str, Any]:
-    """SDK model (or anyOf wrapper) -> plain camelCase dict."""
+    """SDK model (or anyOf wrapper) -> plain camelCase dict.
+
+    Uses pydantic's `model_dump`, not the SDK's `to_dict()`: the latter drops
+    read-only fields, which here are the interesting ones (id, status, due,
+    decisionsMade...).
+    """
     if isinstance(model, dict):
         return model
     instance = getattr(model, "actual_instance", None)
     if instance is not None:
         model = instance
+    dump = getattr(model, "model_dump", None)
+    if callable(dump):
+        return dump(by_alias=True, exclude_none=True, mode="json")
     to_dict = getattr(model, "to_dict", None)
     return to_dict() if callable(to_dict) else {}
 
