@@ -2,8 +2,10 @@
   "mcpServers": {
     "sailpoint": {
       "type": "stdio",
-      "command": "/Users/shcotta/Documents/CODE/sailpoint_hackathon/python-mcp-server-template/scripts/run-server.sh",
-      "args": []
+      "command": "/bin/sh",
+      "args": [
+        "/Users/shcotta/Documents/CODE/sailpoint_hackathon/python-mcp-server-template/scripts/run-server.sh"
+      ]
     }
   }
 }
