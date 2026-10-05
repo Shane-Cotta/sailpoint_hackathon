@@ -17,7 +17,7 @@ function identity(id: string, name: string, managerId?: string, managerName?: st
   } as unknown as Identity;
 }
 
-describe('App (manager lookup)', () => {
+describe('App (Team Access Radar)', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
@@ -46,7 +46,7 @@ describe('App (manager lookup)', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.page__title')?.textContent).toContain('Manager Reports Search');
+    expect(el.querySelector('.page__title')?.textContent).toContain('Team Access Radar');
     expect(el.querySelector('.page__meta')?.textContent).toContain('Test User');
   });
 
@@ -76,5 +76,36 @@ describe('App (manager lookup)', () => {
     expect(app['typeSeverity']('employee')).toBe('success');
     expect(app['typeSeverity']('CONTRACTOR')).toBe('warn');
     expect(app['typeSeverity']('-')).toBe('secondary');
+  });
+
+  it('flags the team with the shared rules and counts severities', () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    const base = [
+      { type: 'ENTITLEMENT', name: 'All_Users', source: { name: 'AD' } },
+      { type: 'ENTITLEMENT', name: 'campusAccess', source: { name: 'AD' } },
+    ];
+    app['teamDocs'].set([
+      {
+        id: 'b', displayName: 'Brandon', accessCount: 3,
+        access: [...base, { type: 'ENTITLEMENT', name: 'AccountingGeneral', source: { name: 'AD' }, privileged: true }],
+      },
+      { id: 'n', displayName: 'Nicole', accessCount: 2, access: base },
+      { id: 'a', displayName: 'Adam', accessCount: 2, access: base },
+    ]);
+
+    expect(app['flags']()[0]).toMatchObject({ severity: 'high', type: 'privileged_access', identity: 'Brandon' });
+    expect(app['severityCounts']()).toEqual({ high: 1, medium: 1, low: 0 });
+    expect(app['flaggedPeople']()).toBe(1);
+    expect(app['personFlags']('Brandon').map((f) => f.type)).toEqual(['privileged_access', 'unique_access']);
+    expect(app['baseline']().map((b) => b.access)).toEqual(['AD: All_Users', 'AD: campusAccess']);
+    expect(app['flagLabel']('missing_baseline')).toBe('Missing baseline');
+    expect(app['flagSeverity']('high')).toBe('danger');
+  });
+
+  it('shows review progress as decisions made', () => {
+    const app = TestBed.createComponent(App).componentInstance;
+    expect(app['progress']({ id: 'c', name: 'Q4', decisionsMade: 3, decisionsTotal: 12 })).toBe('3/12 decisions (25%)');
+    expect(app['progress']({ id: 'c', name: 'Q4', decisionsMade: 0, decisionsTotal: 0 })).toBe('not started');
   });
 });

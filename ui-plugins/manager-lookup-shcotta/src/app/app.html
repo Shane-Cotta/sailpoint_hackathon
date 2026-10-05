@@ -1,8 +1,8 @@
 <main class="page">
   <header class="page__header">
     <div>
-      <h1 class="page__title">Manager Reports Search</h1>
-      <p class="page__subtitle">Pick a manager to see their direct reports.</p>
+      <h1 class="page__title">Team Access Radar</h1>
+      <p class="page__subtitle">Pick a manager to see who on their team needs a closer look, and why.</p>
     </div>
     @if (plugin.context(); as ctx) {
       <div class="page__meta">
@@ -43,52 +43,123 @@
     }
   </section>
   @if (selectedManagerId()) {
-    <p-table
-      [value]="reports()"
-      [paginator]="reports().length > 10"
-      [rows]="10"
-      sortField="name"
-      [sortOrder]="1"
-      styleClass="p-datatable-sm"
-      [tableStyle]="{ 'min-width': '40rem' }"
-    >
-      <ng-template #caption>
-        <div class="table-caption">
-          <span class="spds-h5--semibold">Direct reports</span>
-          <p-tag severity="contrast" [value]="reports().length + ''" />
-        </div>
-      </ng-template>
-      <ng-template #header>
-        <tr>
-          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
-          <th>Email</th>
-          <th>Department</th>
-          <th>Type</th>
-        </tr>
-      </ng-template>
-      <ng-template #body let-person>
-        <tr>
-          <td>
-            <div class="cell-person">
-              <p-avatar [label]="initials(person.name)" shape="circle" />
-              <span>{{ person.name }}</span>
+    @if (teamLoading()) {
+      <p-skeleton height="6rem" />
+      <p-skeleton height="14rem" />
+    } @else if (teamError()) {
+      <p-message severity="error" [text]="'Could not load the team: ' + teamError()" />
+    } @else {
+      <section class="summary" aria-label="Summary">
+        <div class="stat"><span class="stat__value">{{ members().length }}</span><span class="stat__label">direct reports</span></div>
+        <div class="stat"><span class="stat__value">{{ flaggedPeople() }}</span><span class="stat__label">people flagged</span></div>
+        <div class="stat stat--high"><span class="stat__value">{{ severityCounts().high }}</span><span class="stat__label">high</span></div>
+        <div class="stat stat--medium"><span class="stat__value">{{ severityCounts().medium }}</span><span class="stat__label">medium</span></div>
+        <div class="stat stat--low"><span class="stat__value">{{ severityCounts().low }}</span><span class="stat__label">low</span></div>
+      </section>
+
+      <section class="reviews">
+        <h2 class="spds-h5--semibold section-title">Open reviews for this manager</h2>
+        @if (reviewsError()) {
+          <p-message severity="warn" [text]="'Could not load certifications: ' + reviewsError()" />
+        } @else if (reviews().length) {
+          @for (review of reviews(); track review.id) {
+            <div class="review">
+              <span class="review__name">{{ review.name }}</span>
+              @if (review.campaign) { <span class="review__meta">{{ review.campaign }}</span> }
+              <p-tag severity="secondary" [value]="progress(review)" />
+              @if (review.due) { <span class="review__meta">due {{ review.due.slice(0, 10) }}</span> }
             </div>
-          </td>
-          <td>{{ person.emailAddress || '-' }}</td>
-          <td>{{ attr(person, 'department') }}</td>
-          <td>
-            <p-tag
-              [severity]="typeSeverity(attr(person, 'type'))"
-              [value]="attr(person, 'type')"
-            />
-          </td>
-        </tr>
-      </ng-template>
-      <ng-template #emptymessage>
-        <tr>
-          <td colspan="4" class="cell-empty">This manager has no direct reports in the loaded identities.</td>
-        </tr>
-      </ng-template>
-    </p-table>
+          }
+        } @else {
+          <p class="muted">No open certifications for this manager.</p>
+        }
+      </section>
+
+      <section class="flags">
+        <h2 class="spds-h5--semibold section-title">What needs a closer look</h2>
+        @if (members().length < 3) {
+          <p class="muted">Fewer than 3 people on this team, so peer comparison (unique access, outliers) is skipped.</p>
+        }
+        @for (flag of flags(); track $index) {
+          <div class="flag" [class]="'flag--' + flag.severity">
+            <div class="flag__head">
+              <p-tag [severity]="flagSeverity(flag.severity)" [value]="flag.severity" />
+              <span class="flag__who">{{ flag.identity }}</span>
+              <span class="flag__type">{{ flagLabel(flag.type) }}</span>
+            </div>
+            <p class="flag__reason">{{ flag.reason }}</p>
+            @if (flag.items?.length) {
+              <div class="flag__items">
+                @for (item of flag.items; track item) { <p-tag severity="secondary" [value]="item" /> }
+              </div>
+            }
+          </div>
+        } @empty {
+          <p-message severity="success" text="Nothing stands out on this team." />
+        }
+      </section>
+
+      <p-table
+        [value]="members()"
+        [paginator]="members().length > 10"
+        [rows]="10"
+        sortField="access_count"
+        [sortOrder]="-1"
+        styleClass="p-datatable-sm"
+        [tableStyle]="{ 'min-width': '40rem' }"
+      >
+        <ng-template #caption>
+          <div class="table-caption">
+            <span class="spds-h5--semibold">Team</span>
+            <p-tag severity="contrast" [value]="members().length + ''" />
+          </div>
+        </ng-template>
+        <ng-template #header>
+          <tr>
+            <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+            <th>Job title</th>
+            <th pSortableColumn="access_count">Access <p-sortIcon field="access_count" /></th>
+            <th>Flags</th>
+          </tr>
+        </ng-template>
+        <ng-template #body let-person>
+          <tr>
+            <td>
+              <div class="cell-person">
+                <p-avatar [label]="initials(person.name)" shape="circle" />
+                <span>{{ person.name }}</span>
+              </div>
+            </td>
+            <td>{{ person.job_title || '-' }}</td>
+            <td>{{ person.access_count }}</td>
+            <td>
+              <div class="flag__items">
+                @for (flag of personFlags(person.name); track $index) {
+                  <p-tag [severity]="flagSeverity(flag.severity)" [value]="flagLabel(flag.type)" />
+                } @empty {
+                  <span class="muted">-</span>
+                }
+              </div>
+            </td>
+          </tr>
+        </ng-template>
+        <ng-template #emptymessage>
+          <tr>
+            <td colspan="4" class="cell-empty">No identities list this person as their manager.</td>
+          </tr>
+        </ng-template>
+      </p-table>
+
+      @if (baseline().length) {
+        <section class="baseline">
+          <h2 class="spds-h5--semibold section-title">Access most of the team shares</h2>
+          <div class="flag__items">
+            @for (item of baseline(); track item.access) {
+              <p-tag severity="secondary" [value]="item.access + ' (' + item.held_by + ')'" />
+            }
+          </div>
+        </section>
+      }
+    }
   }
 </main>
