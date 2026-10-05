@@ -51,57 +51,6 @@ flowchart TB
 | **Identity Workflows** | Background `general-purpose` subagent | `identity-workflows/` → `identity-workflows/identity-workflows/` | Onboarding workflow created and test-run green, plus a missing-manager variant; a "flagged report → email the manager" workflow the MCP server could trigger; 3 guide errors found | 55 tool calls · about 11 min |
 | **SaaS Connectivity** | Background `general-purpose` subagent | `saas-connectivity/` → `saas-connectivity/saas-connectivity/` | TypeScript connector, 13 tests, deployed with `sail conn`, source aggregated (50 accounts, 8 entitlements), guide bug fixed | 82 tool calls · about 12 min |
 
-## Timeline
-
-```mermaid
-sequenceDiagram
-    autonumber
-    actor U as Shane
-    participant O as Orchestrator
-    participant UI as UI Plugins agent
-    participant IW as Identity Workflows agent
-    participant SC as SaaS Connectivity agent
-
-    U->>O: Set up the MCP Server hack
-    O->>U: Firewall approval needed (developer.sailpoint.com)
-    O->>O: Download template, uv venv, 13 tests pass
-    U->>O: Make a plan (plan mode)
-    O->>U: Which use case? Which client?
-    U-->>O: Manager team access review · Inspector + Claude Code
-    O->>O: Write plan, U approves, build 3 tools + tests
-    U->>O: Also set up UI Plugins on its own branch
-    O->>UI: spawn (worktree ui-plugins)
-    U->>O: Also review Identity Workflows + SaaS Connectivity
-    O->>IW: spawn (worktree identity-workflows)
-    O->>SC: spawn (worktree saas-connectivity)
-    O->>UI: course-correct: use localhost, add a README.md
-    O->>U: Approve the tenant hosts
-    U-->>O: approved
-    O->>O: Live test, tune flags on real data, proxy fix
-    UI-->>O: done (registered + linked in tenant)
-    O->>U: Inspector override? Demo campaign?
-    U-->>O: VS Code native; yes, create the campaign
-    IW-->>O: done (workflow green)
-    SC-->>O: done (source aggregated)
-    O->>O: Audit branches, campaign ACTIVE, VS Code + runbook
-    U->>O: Set the workflow recipient
-    O->>U: Test email sent
-    U-->>O: Email received
-    U->>O: Merge to main, add Run and Debug
-    O->>O: Octopus merge (no conflicts), debugpy + launch.json
-    U->>O: Remove the old worktrees; link the workflow to the MCP tools
-    O->>O: Keep config files, remove worktrees, deploy the workflow, add notify_manager
-    O->>O: Live run fails, read the execution history, fix and retry
-    O->>U: Manager email delivered for Brandon.Mason
-    U->>O: Build the in-product version
-    O->>O: Shared flag contract (Python reference), TypeScript port, Radar page
-    O->>O: Live check: identical flags in Python and TypeScript for 3 teams
-    U->>O: Upload it, add an Email manager button
-    O->>O: Upload, add a Radar workflow copy, verify a test-endpoint run
-    U->>O: Prefix our tenant resources with UCSF
-    O->>O: Rename workflows, source, connector and plugin; replace the campaign
-```
-
 ## How we kept parallel agents from colliding
 1. **One worktree and branch per agent**, all created from `main`. No agent shares a working directory with another.
 2. **Each track writes only inside a folder named after the track.** Branches touch disjoint paths, so merging them into `main` later can't conflict. The orchestrator checks this with `git diff --name-only main...<branch>`.

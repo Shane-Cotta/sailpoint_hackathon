@@ -27,6 +27,6 @@ Or chat with it: ⇧⌘P → **MCP: List Servers** → `sailpoint` → **Start**
 
 ## More
 - **[RUNBOOK.md](RUNBOOK.md)**: run it in VS Code, the demo script, and what to clean up in the tenant.
-- **[AGENT-WORKFLOW.md](AGENT-WORKFLOW.md)**: how one orchestrating Claude session and three subagents built all of this in parallel (with diagrams).
+- **[AGENT-WORKFLOW.md](AGENT-WORKFLOW.md)**: how one orchestrating Claude session and three subagents built all of this in parallel (with a diagram).
 
 This whole folder is one git repository (https://github.com/Shane-Cotta/sailpoint_hackathon). The code is in `python-mcp-server-template/`: the MCP server at its root, and each other track in its own folder.

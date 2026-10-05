@@ -28,7 +28,7 @@ Rules for every track:
   to the theme) and an engineering `NOTES.md`. The workspace `README.md` indexes all of them, so update it when a track's status changes.
 - Don't push, and don't merge future branches, without asking.
 - Commit messages end with the Co-Authored-By line given in the session's system reminder.
-- **Keep `AGENT-WORKFLOW.md` current**: add to its tables, diagrams and changelog whenever an agent is started, finishes,
+- **Keep `AGENT-WORKFLOW.md` current** (the user removed its Timeline section; don't add it back): add to its overview diagram, tables and changelog whenever an agent is started, finishes,
   or coordination changes. Keep `RUNBOOK.md` current whenever how to run, demo or clean up changes.
 
 ## Tenant & credentials
