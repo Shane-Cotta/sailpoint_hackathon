@@ -3,7 +3,7 @@ import { SailpointPluginService } from '@core';
 import { directReportsSearch, type Flag, type SearchDocument } from './team-flags';
 
 /**
- * "Shane Cotta Flagged Report to Manager (Radar)": looks up the person and their
+ * "UCSF Flagged Report to Manager (Radar)": looks up the person and their
  * manager and emails the manager (in this demo tenant, the demo inbox). It is a
  * copy of the workflow the MCP server's notify_manager triggers, generated from
  * the same definition (identity-workflows/scripts/build_workflow.py).
@@ -93,7 +93,7 @@ export function notifyInput(identityId: string, flag: Flag): Record<string, stri
   return {
     identityId,
     flag: `${flag.type} (${flag.severity})`,
-    detail: `${flag.reason}${items} (sent from Team Access Radar)`,
+    detail: `${flag.reason}${items} (sent from UCSF Team Access Radar)`,
   };
 }
 

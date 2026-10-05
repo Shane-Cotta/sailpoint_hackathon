@@ -1,5 +1,5 @@
 {
-  "name": "Shane Cotta Identity Onboarding",
+  "name": "UCSF Identity Onboarding",
   "description": "Hack Day Track 01: on idn:identity-created, look up the new hire and their manager and email an onboarding notice.",
   "enabled": false,
   "definition": {

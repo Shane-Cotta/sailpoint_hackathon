@@ -1,5 +1,5 @@
 {
-  "name": "Shane Cotta Identity Onboarding (manager check)",
+  "name": "UCSF Identity Onboarding (manager check)",
   "description": "Hack Day Track 01 stretch: same as Identity Onboarding, but identities without a manager get a 'routing to HR' notice instead of a failed run.",
   "enabled": false,
   "definition": {

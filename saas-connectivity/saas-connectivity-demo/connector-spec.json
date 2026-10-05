@@ -1,5 +1,5 @@
 {
-  "name": "SaaS Connectivity Demo",
+  "name": "UCSF SaaS Connectivity Demo",
   "keyType": "simple",
   "commands": [
     "std:test-connection",

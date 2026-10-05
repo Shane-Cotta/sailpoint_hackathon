@@ -118,7 +118,8 @@ def build(template: dict, name: str, description: str, email_step: dict, no_mana
 def main() -> int:
     ap = argparse.ArgumentParser()
     ap.add_argument("--recipient", default=os.environ.get("WF_RECIPIENT", RECIPIENT_PLACEHOLDER))
-    ap.add_argument("--name", default=os.environ.get("WF_OWNER_NAME", "Shane Cotta"))
+    # Prefix for workflow names. "UCSF" marks our resources in the shared demo tenant.
+    ap.add_argument("--name", default=os.environ.get("WF_OWNER_NAME", "UCSF"))
     a = ap.parse_args()
 
     with open(TEMPLATE) as f:

@@ -1,5 +1,5 @@
 {
-  "name": "Shane Cotta Identity Onboarding (to manager)",
+  "name": "UCSF Identity Onboarding (to manager)",
   "description": "Hack Day Track 01 stretch: the onboarding notice goes to the new hire's manager; no manager means no email.",
   "enabled": false,
   "definition": {

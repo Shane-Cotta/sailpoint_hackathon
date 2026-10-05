@@ -1,5 +1,5 @@
 {
-  "name": "Shane Cotta Flagged Report to Manager",
+  "name": "UCSF Flagged Report to Manager",
   "description": "Main-hack tie-in: called by the team-access-review MCP server when a direct report is flagged; emails the report's manager.",
   "enabled": false,
   "definition": {

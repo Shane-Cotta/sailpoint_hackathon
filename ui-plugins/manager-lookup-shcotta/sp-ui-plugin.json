@@ -3,7 +3,7 @@
     "manifest": {
         "alias": "manager-lookup-shcotta",
         "name": {
-            "en": "Team Access Radar"
+            "en": "UCSF Team Access Radar"
         },
         "description": {
             "en": "For managers: see who on your team holds risky or unusual access compared with their peers, and which reviews are open. Same rules as the Team Access Review MCP server."

@@ -46,7 +46,7 @@ describe('App (Team Access Radar)', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
     const el = fixture.nativeElement as HTMLElement;
-    expect(el.querySelector('.page__title')?.textContent).toContain('Team Access Radar');
+    expect(el.querySelector('.page__title')?.textContent).toContain('UCSF Team Access Radar');
     expect(el.querySelector('.page__meta')?.textContent).toContain('Test User');
   });
 

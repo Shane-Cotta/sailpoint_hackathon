@@ -28,7 +28,7 @@ describe('TeamAccessService.notifyManager', () => {
       flag: 'privileged_access (high)',
       detail:
         'Holds 2 privileged item(s), 1 of which no one else on the team has. ' +
-        'Items: Active Directory: AccountingGeneral. (sent from Team Access Radar)',
+        'Items: Active Directory: AccountingGeneral. (sent from UCSF Team Access Radar)',
     });
   });
 

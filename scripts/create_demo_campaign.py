@@ -36,7 +36,8 @@ from sailpoint.certification_campaigns.models.campaign2_all_of_search_campaign_i
 from sailpoint_mcp.client import call_sailpoint, describe_api_error  # noqa: E402
 from sailpoint_mcp.tools import _team  # noqa: E402
 
-NAME_PREFIX = "HackDay demo - team access review"
+# "UCSF" marks our resources in the shared demo tenant.
+NAME_PREFIX = "UCSF HackDay demo - team access review"
 
 # Campaigns generate asynchronously (PENDING -> STAGED) and can only be
 # activated once STAGED.

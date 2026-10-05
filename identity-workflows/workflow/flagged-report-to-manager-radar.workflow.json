@@ -1,5 +1,5 @@
 {
-  "name": "Shane Cotta Flagged Report to Manager (Radar)",
+  "name": "UCSF Flagged Report to Manager (Radar)",
   "description": "Started by the Team Access Radar UI plugin via the workflow test endpoint. Keep DISABLED: the test endpoint only runs disabled workflows.",
   "enabled": false,
   "definition": {

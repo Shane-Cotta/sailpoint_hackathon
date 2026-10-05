@@ -20,8 +20,9 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-SOURCE_NAME = os.environ.get("SOURCE_NAME", "SaaS Connectivity Demo (Hack Day)")
-CONNECTOR_NAME = os.environ.get("CONNECTOR_NAME", "SaaS Connectivity Demo")  # "name" in connector-spec.json
+# "UCSF" marks our resources in the shared demo tenant.
+SOURCE_NAME = os.environ.get("SOURCE_NAME", "UCSF SaaS Connectivity Demo (Hack Day)")
+CONNECTOR_NAME = os.environ.get("CONNECTOR_NAME", "UCSF SaaS Connectivity Demo")  # "name" in connector-spec.json
 BASE = os.environ["SAIL_BASE_URL"].rstrip("/")
 # Cloudflare in front of the tenant rejects the default "Python-urllib" User-Agent (error 1010).
 UA = {"User-Agent": "hackday-saas-connectivity/1.0"}
