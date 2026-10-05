@@ -1,0 +1,11 @@
+# secrets
+.env
+.env.*
+config.json
+**/config.json
+.sailhome/
+# build / deps
+node_modules/
+dist/
+coverage/
+*.zip

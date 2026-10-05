@@ -1,0 +1,9 @@
+notFound error: 
+ + ConnectorError: Account usr_doesnotexist not found
+    at MyClient.getAccount (/Users/shcotta/Documents/CODE/sailpoint_hackathon/saas-connectivity/saas-connectivity/saas-connectivity-demo/src/my-client.ts:58:23)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async <anonymous> (/Users/shcotta/Documents/CODE/sailpoint_hackathon/saas-connectivity/saas-connectivity/saas-connectivity-demo/src/index.ts:86:29)
+    at async Connector._exec (/Users/shcotta/Documents/CODE/sailpoint_hackathon/saas-connectivity/saas-connectivity/saas-connectivity-demo/node_modules/@sailpoint/connector-sdk/lib/connector.ts:508:3)
+    at async <anonymous> (/Users/shcotta/Documents/CODE/sailpoint_hackathon/saas-connectivity/saas-connectivity/saas-connectivity-demo/node_modules/@sailpoint/connector-sdk/bin/spcx.ts:148:16) {
+  type: 'notFound'
+}
