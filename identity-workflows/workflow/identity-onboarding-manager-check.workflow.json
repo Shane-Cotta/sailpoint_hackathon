@@ -67,7 +67,7 @@
           "context": {},
           "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF",
           "recipientEmailList": [
-            "REPLACE_WITH_YOUR_EMAIL@example.com"
+            "shane.cotta+hackday@gmail.com"
           ]
         },
         "displayName": "Send Onboarding Email",
@@ -94,7 +94,7 @@
           "context": {},
           "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has no manager on record",
           "recipientEmailList": [
-            "REPLACE_WITH_YOUR_EMAIL@example.com"
+            "shane.cotta+hackday@gmail.com"
           ]
         },
         "displayName": "Send No-Manager Email",

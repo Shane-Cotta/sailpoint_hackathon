@@ -20,7 +20,7 @@ python3 scripts/isc.py test workflow/identity-onboarding.workflow.json <identity
 No CLI? Use the UI instead: Admin → Workflows → *Shane Cotta Identity Onboarding* → Edit in Builder → click **Send Onboarding Email** → replace the recipient → Save → Test Workflow, and paste `data/test-payload.example.json` with a real identity id.
 
 **Status: partly done. The workflow is built and tested; the end-to-end joiner run is blocked.**
-- **Recipient is a placeholder** (`REPLACE_WITH_YOUR_EMAIL@example.com`, which cannot receive mail). You need to set your own inbox (see above).
+- **Recipient:** `shane.cotta+hackday@gmail.com` (set 2026-10-05, pushed to both tenant workflows, test run sent).
 - **This tenant was not set up for the mini hack.** It has no *Workflows Mini Hack Template*, no reference HR source, and no Margaret Hamilton or Jean Bartik. We followed the guide's fallback (build from `workflows-hack-day-template.json`) and tested against existing identities (Juan.Hamilton → manager Patrick.Jenkins).
 - **Not done (needs the UI, or your OK to change the shared tenant):** Part 1 (your own delimited-file source, the schema, manager correlation, aggregating `guide-files/hr-feed.csv`, and the identity profile), step 4 (Enable) and step 5 (aggregate `data/hr-feed-with-new-hire.csv` so that a real `idn:identity-created` fires). The click-paths are in [NOTES.md](NOTES.md#ui-steps-left-for-you). Enabling the workflow subscribes it to *every* identity creation in this shared tenant, so add a trigger filter first or keep the window short.
 

@@ -44,7 +44,7 @@
           "context": {},
           "subject": "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.flag }})",
           "recipientEmailList": [
-            "REPLACE_WITH_YOUR_EMAIL@example.com"
+            "shane.cotta+hackday@gmail.com"
           ]
         },
         "displayName": "Email Manager",
