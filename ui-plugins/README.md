@@ -1,64 +1,65 @@
-# SailPoint Hack Day: UI Plugins
+# SailPoint Hack Day: UI Plugins → Team Access Radar
 
-**What this is.** This is our work for Hack Day **Track 03 "UI Plugins"**, a guided mini hack of
-about one hour. It is also the starting point for the scored main hack, **"Extend UI Plugins"**.
-A UI plugin is a small web page that SailPoint Identity Security Cloud (ISC) shows *inside* the
-product. It runs as the signed-in user, so it can call SailPoint APIs without a separate login.
-We don't have to host anything: the SailPoint CLI uploads it to the tenant.
+**What this is.** This is our work for Hack Day **Track 03 "UI Plugins"** and the base for the scored main hack,
+**"Extend UI Plugins"**. A UI plugin is a small web page that SailPoint Identity Security Cloud (ISC) shows *inside*
+the product. It runs as the signed-in user, so it can call SailPoint APIs without a separate login.
 
-**What we built.** `manager-lookup-shcotta/` is the track's finished exercise, a
-"Manager Reports Search" page. You pick a manager from a searchable dropdown and see a table of
-their direct reports. All of it comes from one paginated SailPoint Identities API call. It is
-built on SailPoint's official Angular starter, and it builds and passes its unit tests.
+**What we built: Team Access Radar.**
+
+> *Before you rubber-stamp your quarterly access review, see which of your people have access their peers don't.*
+
+Pick a manager and the page shows, inside ISC:
+- **A summary:** team size, how many people are flagged, and how many flags are high, medium and low.
+- **What needs a closer look:** each flag with its severity, the person, a plain-English reason, and the exact
+  access items involved. For example: *Brandon.Mason (high): holds 2 privileged items, 1 of which no one else on the team has:
+  Active Directory: AccountingGeneral*.
+- **The team table**, with each person's access count and flag tags.
+- **The access most of the team shares**, which is the baseline everyone else is compared with.
+- **The manager's open certifications**, with progress and due date.
+
+**The same answer as our MCP server.** The plugin's flag rules (`src/app/team-access/team-flags.ts`) are a port of the
+MCP server's `_team.py`. Both test suites run the same contract, `shared/team-flag-cases.json`, which is generated from the
+Python reference. On live tenant data for three teams the two produced identical flags. So the chat assistant and the page
+never disagree.
+
+It started as the track's exercise, *Manager Reports Search*: a searchable manager dropdown and a table of reports, built on
+SailPoint's official Angular starter (`manager-lookup-shcotta/`; the alias is kept so the registered plugin still works).
 
 ## Run it
 
-**From VS Code:** Run and Debug (⇧⌘D) → **UI plugin: dev server** → ▶. The first run installs `node_modules` for your OS
-(the template needs npm 11.12+, which the entry provides), then serves https://localhost:4200.
+**From VS Code:** Run and Debug (⇧⌘D) → ▶ **Team Access Radar (UI plugin): dev server**. The first run installs
+`node_modules` for your OS, then serves https://localhost:4200. Open that once and accept the self-signed certificate, then open
+the plugin inside ISC (signed in as `hack.day`):
+
+https://devrel-ga-25044.identitynow-demo.com/ui/plugin/0ac31b98-85df-4d2e-a6dd-7676f148a0ac?spPluginDev=manager-lookup-shcotta
+
+Pick **Douglas.Flores**. Chrome may ask to allow local network access for the tenant.
+Tests: ▶ **Team Access Radar (UI plugin): unit tests** (51 tests, including the 6 shared parity cases).
 
 From a terminal instead:
 ```bash
 cd ui-plugins/manager-lookup-shcotta
 npx -y npm@11 install          # the template needs npm 11.12+
-npm test -- --watch=false      # unit tests
-npm start                      # dev server on https://localhost:4200 (start:sandbox binds 0.0.0.0 inside the sandbox)
+npx ng test --watch=false      # unit tests
+npm start                      # dev server on https://localhost:4200
 ```
-
-To see it **inside ISC**, the tenant PAT must be in `ui-plugins/.env` (it is already there; otherwise copy `.env.example`). With the dev server running, run
-these in a second terminal:
-
-```bash
-../sail.sh ui-plugins create --private   # register the plugin in the tenant (once)
-../sail.sh ui-plugins link               # prints a ...?spPluginDev=... URL; open it in Chrome
-```
-
-When you run the dev server on the Mac (the ▶ entry), nothing else is needed; just accept the self-signed certificate at
-https://localhost:4200 once. Only if it runs inside the sandbox do you also need to publish the port with
-`sbx ports <sandbox-name> --publish 4200:4200`.
+The plugin is already registered and linked in the tenant. To redo that: `../sail.sh ui-plugins create --private`, then
+`../sail.sh ui-plugins link`. `sail.sh` reads the PAT from the gitignored `ui-plugins/.env`.
 
 ## How it gets into the tenant
 
-The SailPoint CLI (`sail` 2.7.0) handles it. `npm run build` compiles the page, and
-`../sail.sh ui-plugins upload` deploys it to the tenant's CDN. After that it is a real ISC page,
-and you can add it to the top nav bar under Admin → Global → System Settings → Customize Navbar.
+The SailPoint CLI (`sail` 2.7.0) handles it. `npm run build` compiles the page, and `../sail.sh ui-plugins upload` deploys it
+to the tenant's CDN. After that it is a real ISC page without a dev server, and you can add it to the top nav bar under
+Admin → Global → System Settings → Customize Navbar. Manifest-only changes (name, scopes) go up with `../sail.sh ui-plugins push-manifest`.
 
 ## Status
 
-- Working: scaffold, `npm install`, production build, 40/40 unit tests, the dev server, and
-  manifest validation.
-- In the tenant (`devrel-ga-25044`): the plugin instance is registered, private to our user,
-  and linked to the local dev server. Dev URL:
-  https://devrel-ga-25044.identitynow-demo.com/ui/plugin/0ac31b98-85df-4d2e-a6dd-7676f148a0ac?spPluginDev=manager-lookup-shcotta
-  (it needs the dev server running and port 4200 published).
-- Not done yet: `upload` (the production deploy) and the nav-bar item.
+- **Working:** Team Access Radar page, 51/51 unit tests, production build (only the expected bundle-size warning), and the
+  live API calls (`POST /v3/search`, `GET /v3/certifications`) checked against the tenant.
+- **In the tenant** (`devrel-ga-25044`): plugin instance `0ac31b98-…`, renamed **Team Access Radar** (manifest pushed),
+  private to `hack.day`, and linked to the local dev server.
+- **Not done yet:** `upload` (the production deploy, so it works without the dev server) and the nav-bar item.
+- **Ideas for next:** a "Notify manager" button through a Launcher/workflow (the MCP server already does this with
+  `notify_manager`), and one-click revoke from the open certification.
 
-## Recommended main-hack idea: "Team Access Radar"
-
-> *Before you rubber-stamp your quarterly access review, see which of your people have access
-> their peers don't.*
-
-This is a page inside ISC for managers. It lists your direct reports and flags **unusual access**
-(something few peers with the same role have) and **privileged access**. Next to that, it shows
-the certifications and access requests waiting on you, riskiest first, with a one-click revoke.
-It is the in-product companion to our MCP server, which answers the same questions in chat.
 More ideas and the engineering details are in [NOTES.md](NOTES.md).

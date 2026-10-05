@@ -14,6 +14,9 @@ ChatGPT desktop, ...) can use them to answer that question in plain language:
 | `get_manager_pending_reviews` | "What's waiting on me?" Open certifications, active campaigns, and pending access requests for the team. |
 | `notify_manager` | "Let Douglas know about Brandon." Starts a SailPoint **workflow** that emails the manager the finding, then reports whether the email actually went out. It runs only when you ask. |
 
+**Also inside SailPoint: Team Access Radar.** The same review, as a page inside ISC (our UI plugin, `ui-plugins/`). The rules
+are shared: both sides must pass `shared/team-flag-cases.json`, and on live data they flag identical people for identical reasons.
+
 **What gets flagged** (simple rules a manager can check for themselves):
 - 🔴 **Leaver risk**: inactive or terminated but still holding access.
 - 🔴 **Privileged access no one else on the team has.**
