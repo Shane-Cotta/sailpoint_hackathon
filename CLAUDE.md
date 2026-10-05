@@ -7,8 +7,10 @@ API usage 10%; needs at least one SailPoint API and a live demo. Our theme throu
 their direct reports' access, flag what's risky or unusual, and act on pending reviews.
 
 ## Layout: one repo, merged
-The repo is rooted at `python-mcp-server-template/` (`main`). The three track branches were built in parallel worktrees and then
-**merged into `main` (octopus merge `12e3ad1`)**. Each track lives in its own top-level folder:
+**The repo is the whole workspace** (`sailpoint_hackathon/`, branch `main`, remote `origin` = https://github.com/Shane-Cotta/sailpoint_hackathon.git):
+these docs, `.vscode/`, `.mcp.json`, and the code under `python-mcp-server-template/`. (The git root moved up from that folder on 2026-10-05; history is kept.)
+The three track branches were built in parallel worktrees and then
+**merged into `main` (octopus merge `12e3ad1`)**. Each track lives in its own folder inside `python-mcp-server-template/`:
 
 | Track | Folder in the repo | Status file |
 |---|---|---|

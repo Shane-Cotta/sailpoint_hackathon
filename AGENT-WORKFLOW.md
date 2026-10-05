@@ -147,3 +147,4 @@ sequenceDiagram
 | 14 | Team Access Radar: the UI plugin becomes the in-product team review. TypeScript port held to `shared/team-flag-cases.json`, 51 plugin tests, identical to Python on live data, manifest renamed in the tenant |
 | 15 | Team Access Radar uploaded to the tenant; **Email manager** button (through a disabled workflow copy started by the test endpoint, since browsers can't hold the trigger secret) |
 | 16 | At Shane's request, everything we created in the shared tenant renamed with a **UCSF** prefix: workflows, campaign (replaced, since active campaigns can't be renamed), source, connector, plugin |
+| 17 | Git root moved up to the whole workspace (docs, `.vscode`, code; history kept as 145 renames); `origin` now https://github.com/Shane-Cotta/sailpoint_hackathon.git |

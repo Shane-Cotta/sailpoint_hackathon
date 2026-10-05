@@ -125,6 +125,7 @@ labelled **UCSF Team Access Radar** that points to the plugin → Save.
 | Pending reviews come back empty | Press ▶ on **Demo setup: create demo campaign** and wait about a minute for it to activate. |
 
 ## 9. Repository layout
-Everything is merged into one repository, `python-mcp-server-template/`, on `main`. The MCP server is at the root, and
+The whole `sailpoint_hackathon` folder is one git repository (`main`, remote https://github.com/Shane-Cotta/sailpoint_hackathon.git):
+these docs and `.vscode/` at the top, and the code in `python-mcp-server-template/`. There the MCP server is at the root, and
 `ui-plugins/`, `identity-workflows/` and `saas-connectivity/` each hold one track. The per-track worktrees used during
 the parallel build have been removed. Nothing has been pushed anywhere yet.
