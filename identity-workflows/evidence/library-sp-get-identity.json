@@ -1,0 +1,1103 @@
+[
+  {
+    "deprecatedBy": "2099-01-01T00:00:00Z",
+    "outputSchema": {
+      "definitions": {},
+      "properties": {
+        "attributes": {
+          "$id": "#sp:get-identity/attributes",
+          "properties": {
+            "cloudAuthoritativeSource": {
+              "$id": "#sp:get-identity/attributes/cloudAuthoritativeSource",
+              "default": "",
+              "examples": [
+                "AD-Source"
+              ],
+              "pattern": "^.*$",
+              "title": "cloudAuthoritativeSource",
+              "type": "string"
+            },
+            "cloudStatus": {
+              "$id": "#sp:get-identity/attributes/cloudStatus",
+              "default": "",
+              "examples": [
+                "PENDING"
+              ],
+              "pattern": "^.*$",
+              "title": "cloudStatus",
+              "type": "string"
+            },
+            "displayName": {
+              "$id": "#sp:get-identity/attributes/displayName",
+              "default": "",
+              "examples": [
+                "Abdiel admin6ef3c229"
+              ],
+              "pattern": "^.*$",
+              "title": "displayName",
+              "type": "string"
+            },
+            "email": {
+              "$id": "#sp:get-identity/attributes/email",
+              "default": "",
+              "examples": [
+                "Abdiel.admin6ef3c229@testmail.com"
+              ],
+              "format": "email",
+              "pattern": "^.*$",
+              "title": "email",
+              "type": "string"
+            },
+            "firstname": {
+              "$id": "#sp:get-identity/attributes/firstname",
+              "default": "",
+              "examples": [
+                "Abdiel"
+              ],
+              "pattern": "^.*$",
+              "title": "firstname",
+              "type": "string"
+            },
+            "internalCloudStatus": {
+              "$id": "#sp:get-identity/attributes/internalCloudStatus",
+              "default": "",
+              "examples": [
+                "PENDING"
+              ],
+              "pattern": "^.*$",
+              "title": "internalCloudStatus",
+              "type": "string"
+            },
+            "lastSyncDate": {
+              "$id": "#sp:get-identity/attributes/lastSyncDate",
+              "default": "",
+              "examples": [
+                "c25374503226ca7d384a6a3b169d38c687d4435fe717f7450c66689ec697e9ab"
+              ],
+              "pattern": "^.*$",
+              "title": "lastSyncDate",
+              "type": "string"
+            },
+            "lastname": {
+              "$id": "#sp:get-identity/attributes/lastname",
+              "default": "",
+              "examples": [
+                "admin6ef3c229"
+              ],
+              "pattern": "^.*$",
+              "title": "lastname",
+              "type": "string"
+            },
+            "uid": {
+              "$id": "#sp:get-identity/attributes/uid",
+              "default": "",
+              "examples": [
+                "Abdiel.admin6ef3c229"
+              ],
+              "pattern": "^.*$",
+              "title": "uid",
+              "type": "string"
+            },
+            "workPhone": {
+              "$id": "#sp:get-identity/attributes/workPhone",
+              "default": "",
+              "examples": [
+                "512-942-7578"
+              ],
+              "pattern": "^.*$",
+              "title": "workPhone",
+              "type": "string"
+            }
+          },
+          "title": "attributes",
+          "type": "object"
+        },
+        "cloudStatus": {
+          "$id": "#sp:get-identity/cloudStatus",
+          "default": "",
+          "examples": [
+            "PENDING"
+          ],
+          "pattern": "^.*$",
+          "title": "cloudStatus",
+          "type": "string"
+        },
+        "detectedRoles": {
+          "$id": "#sp:get-identity/detectedRoles",
+          "default": [],
+          "items": {
+            "$id": "#sp:get-identity/detectedRoles/items",
+            "default": "",
+            "examples": [
+              "Bulk-AP-ODS-AD-Source 0"
+            ],
+            "pattern": "^.*$",
+            "title": "items",
+            "type": "string"
+          },
+          "title": "detectedRoles",
+          "type": "array"
+        },
+        "displayName": {
+          "$id": "#sp:get-identity/displayName",
+          "default": "",
+          "examples": [
+            "Abdiel admin6ef3c229"
+          ],
+          "pattern": "^.*$",
+          "title": "displayName",
+          "type": "string"
+        },
+        "emailAddress": {
+          "$id": "#sp:get-identity/emailAddress",
+          "default": "",
+          "examples": [
+            "Abdiel.admin6ef3c229@testmail.com"
+          ],
+          "format": "email",
+          "pattern": "^.*$",
+          "title": "emailAddress",
+          "type": "string"
+        },
+        "id": {
+          "$id": "#sp:get-identity/id",
+          "default": "",
+          "examples": [
+            "2c91808577d06add0177d630740b01c4"
+          ],
+          "pattern": "^.*$",
+          "title": "id",
+          "type": "string"
+        },
+        "isManager": {
+          "$id": "#sp:get-identity/isManager",
+          "default": true,
+          "examples": [
+            true
+          ],
+          "title": "isManager",
+          "type": "boolean"
+        },
+        "lastRefresh": {
+          "$id": "#sp:get-identity/lastRefresh",
+          "default": "",
+          "examples": [
+            "1641523378841"
+          ],
+          "pattern": "^.*$",
+          "title": "lastRefresh",
+          "type": "string"
+        },
+        "lifecycleStateManuallyUpdated": {
+          "$id": "#sp:get-identity/lifecycleStateManuallyUpdated",
+          "default": true,
+          "examples": [
+            false
+          ],
+          "title": "lifecycleStateManuallyUpdated",
+          "type": "boolean"
+        },
+        "manager": {
+          "$id": "#sp:get-identity/manager",
+          "properties": {
+            "id": {
+              "$id": "#sp:get-identity/manager/id",
+              "default": "",
+              "examples": [
+                "2c91808577d06add0177d630801102ae"
+              ],
+              "pattern": "^.*$",
+              "title": "id",
+              "type": "string"
+            },
+            "name": {
+              "$id": "#sp:get-identity/manager/name",
+              "default": "",
+              "examples": [
+                "Nicholas.e601fa9592a"
+              ],
+              "pattern": "^.*$",
+              "title": "name",
+              "type": "string"
+            }
+          },
+          "title": "manager",
+          "type": "object"
+        },
+        "meta": {
+          "$id": "#sp:get-identity/meta",
+          "properties": {
+            "created": {
+              "$id": "#sp:get-identity/meta/created",
+              "default": "",
+              "examples": [
+                "2021-02-24T22:37:15+00:00"
+              ],
+              "format": "date-time",
+              "pattern": "^.*$",
+              "title": "created",
+              "type": "string"
+            },
+            "modified": {
+              "$id": "#sp:get-identity/meta/modified",
+              "default": "",
+              "examples": [
+                "2022-01-07T02:42:58+00:00"
+              ],
+              "format": "date-time",
+              "pattern": "^.*$",
+              "title": "modified",
+              "type": "string"
+            },
+            "type": {
+              "$id": "#sp:get-identity/meta/type",
+              "default": "",
+              "examples": [
+                "identities"
+              ],
+              "pattern": "^.*$",
+              "title": "type",
+              "type": "string"
+            }
+          },
+          "title": "meta",
+          "type": "object"
+        },
+        "name": {
+          "$id": "#sp:get-identity/name",
+          "default": "",
+          "examples": [
+            "Abdiel.admin6ef3c229"
+          ],
+          "pattern": "^.*$",
+          "title": "name",
+          "type": "string"
+        },
+        "processingState": {
+          "$id": "#sp:get-identity/processingState",
+          "default": null,
+          "examples": [
+            "PENDING"
+          ],
+          "pattern": "^.*$",
+          "title": "processingState",
+          "type": "string"
+        },
+        "profileId": {
+          "$id": "#sp:get-identity/profileId",
+          "default": "",
+          "examples": [
+            "2c91808f77d142290177d63161990341"
+          ],
+          "pattern": "^.*$",
+          "title": "profileId",
+          "type": "string"
+        },
+        "profileRole": {
+          "$id": "#sp:get-identity/profileRole",
+          "default": "",
+          "examples": [
+            "ODS-AD-Profile"
+          ],
+          "pattern": "^.*$",
+          "title": "profileRole",
+          "type": "string"
+        },
+        "riskScore": {
+          "$id": "#sp:get-identity/riskScore",
+          "default": 0,
+          "examples": [
+            0
+          ],
+          "title": "riskScore",
+          "type": "integer"
+        },
+        "stateRole": {
+          "$id": "#sp:get-identity/stateRole",
+          "default": null,
+          "examples": [
+            "A Role"
+          ],
+          "pattern": "^.*$",
+          "title": "stateRole",
+          "type": "string"
+        }
+      },
+      "title": "sp:get-identity",
+      "type": "object"
+    },
+    "exampleOutput": {
+      "displayName": "Abdiel admin6ef3c229",
+      "emailAddress": "Abdiel.admin6ef3c229@testmail.com",
+      "manager": {
+        "id": "2c91808577d06add0177d630801102ae",
+        "name": "Nicholas.e601fa9592a"
+      },
+      "riskScore": 0,
+      "attributes": {
+        "uid": "Abdiel.admin6ef3c229",
+        "firstname": "Abdiel",
+        "cloudAuthoritativeSource": "AD-Source",
+        "cloudStatus": "PENDING",
+        "displayName": "Abdiel admin6ef3c229",
+        "internalCloudStatus": "PENDING",
+        "lastSyncDate": "c25374503226ca7d384a6a3b169d38c687d4435fe717f7450c66689ec697e9ab",
+        "workPhone": "512-942-7578",
+        "email": "Abdiel.admin6ef3c229@testmail.com",
+        "lastname": "admin6ef3c229"
+      },
+      "isManager": true,
+      "profileRole": "ODS-AD-Profile",
+      "profileId": "2c91808f77d142290177d63161990341",
+      "stateRole": "A Role",
+      "detectedRoles": [
+        "Bulk-AP-ODS-AD-Source 0"
+      ],
+      "lastRefresh": "1641523378841",
+      "lifecycleStateManuallyUpdated": false,
+      "processingState": "PENDING",
+      "cloudStatus": "PENDING",
+      "id": "2c91808577d06add0177d630740b01c4",
+      "name": "Abdiel.admin6ef3c229",
+      "meta": {
+        "created": "2021-02-24T22:37:15+00:00",
+        "modified": "2022-01-07T02:42:58+00:00",
+        "type": "identities"
+      }
+    },
+    "id": "sp:get-identity",
+    "name": "Get Identity",
+    "description": "Gets a single specific identity and its identity attributes.",
+    "type": "ACTION",
+    "formFields": [
+      {
+        "config": {
+          "max": 1
+        },
+        "helpText": "Use the dropdown list to choose an identity or enter a JSONPath expression to an identity\u2019s technical ID to return that identity.",
+        "label": "Identity",
+        "name": "id",
+        "required": true,
+        "type": "identityPicker"
+      }
+    ],
+    "versionNumber": 1,
+    "deprecated": true,
+    "isDynamicSchema": false,
+    "isSimulationEnabled": false
+  },
+  {
+    "deprecatedBy": "2099-01-01T00:00:00Z",
+    "outputSchema": {
+      "definitions": {},
+      "properties": {
+        "attributes": {
+          "$id": "#sp:get-identity/attributes",
+          "properties": {
+            "city": {
+              "$id": "#sp:get-identity/attributes/city",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "city",
+              "type": "string"
+            },
+            "cloudAuthoritativeSource": {
+              "$id": "#sp:get-identity/attributes/cloudAuthoritativeSource",
+              "default": "",
+              "examples": [
+                "AD-Source"
+              ],
+              "pattern": "^.*$",
+              "title": "cloudAuthoritativeSource",
+              "type": "string"
+            },
+            "cloudLifecycleState": {
+              "$id": "#sp:get-identity/attributes/cloudLifecycleState",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "cloudLifecycleState",
+              "type": "string"
+            },
+            "cloudStatus": {
+              "$id": "#sp:get-identity/attributes/cloudStatus",
+              "default": "",
+              "examples": [
+                "PENDING"
+              ],
+              "pattern": "^.*$",
+              "title": "cloudStatus",
+              "type": "string"
+            },
+            "costCenter": {
+              "$id": "#sp:get-identity/attributes/costCenter",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "costCenter",
+              "type": "string"
+            },
+            "country": {
+              "$id": "#sp:get-identity/attributes/country",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "country",
+              "type": "string"
+            },
+            "department": {
+              "$id": "#sp:get-identity/attributes/department",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "department",
+              "type": "string"
+            },
+            "displayName": {
+              "$id": "#sp:get-identity/attributes/displayName",
+              "default": "",
+              "examples": [
+                "Abdiel admin6ef3c229"
+              ],
+              "pattern": "^.*$",
+              "title": "displayName",
+              "type": "string"
+            },
+            "email": {
+              "$id": "#sp:get-identity/attributes/email",
+              "default": "",
+              "examples": [
+                "Abdiel.admin6ef3c229@testmail.com"
+              ],
+              "format": "email",
+              "pattern": "^.*$",
+              "title": "email",
+              "type": "string"
+            },
+            "endDate": {
+              "$id": "#sp:get-identity/attributes/endDate",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "endDate",
+              "type": "string"
+            },
+            "firstname": {
+              "$id": "#sp:get-identity/attributes/firstname",
+              "default": "",
+              "examples": [
+                "Abdiel"
+              ],
+              "pattern": "^.*$",
+              "title": "firstname",
+              "type": "string"
+            },
+            "googleemail": {
+              "$id": "#sp:get-identity/attributes/googleemail",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "googleemail",
+              "type": "string"
+            },
+            "ibmiusername": {
+              "$id": "#sp:get-identity/attributes/ibmiusername",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "ibmiusername",
+              "type": "string"
+            },
+            "identificationNumber": {
+              "$id": "#sp:get-identity/attributes/identificationNumber",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "identificationNumber",
+              "type": "string"
+            },
+            "initials": {
+              "$id": "#sp:get-identity/attributes/initials",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "initials",
+              "type": "string"
+            },
+            "internalCloudStatus": {
+              "$id": "#sp:get-identity/attributes/internalCloudStatus",
+              "default": "",
+              "examples": [
+                "PENDING"
+              ],
+              "pattern": "^.*$",
+              "title": "internalCloudStatus",
+              "type": "string"
+            },
+            "jobTitle": {
+              "$id": "#sp:get-identity/attributes/jobTitle",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "jobTitle",
+              "type": "string"
+            },
+            "lastSyncDate": {
+              "$id": "#sp:get-identity/attributes/lastSyncDate",
+              "default": "",
+              "examples": [
+                "c25374503226ca7d384a6a3b169d38c687d4435fe717f7450c66689ec697e9ab"
+              ],
+              "pattern": "^.*$",
+              "title": "lastSyncDate",
+              "type": "string"
+            },
+            "lastname": {
+              "$id": "#sp:get-identity/attributes/lastname",
+              "default": "",
+              "examples": [
+                "admin6ef3c229"
+              ],
+              "pattern": "^.*$",
+              "title": "lastname",
+              "type": "string"
+            },
+            "licenseStatus": {
+              "$id": "#sp:get-identity/attributes/licenseStatus",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "licenseStatus",
+              "type": "string"
+            },
+            "location": {
+              "$id": "#sp:get-identity/attributes/location",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "location",
+              "type": "string"
+            },
+            "locationCode": {
+              "$id": "#sp:get-identity/attributes/locationCode",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "locationCode",
+              "type": "string"
+            },
+            "manager": {
+              "$id": "#sp:get-identity/attributes/manager",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "manager",
+              "type": "string"
+            },
+            "middleName": {
+              "$id": "#sp:get-identity/attributes/middleName",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "middleName",
+              "type": "string"
+            },
+            "neLocations": {
+              "$id": "#sp:get-identity/attributes/neLocations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "neLocations",
+              "type": "string"
+            },
+            "neOrganizations": {
+              "$id": "#sp:get-identity/attributes/neOrganizations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "neOrganizations",
+              "type": "string"
+            },
+            "neOrganizationsSuborganizations": {
+              "$id": "#sp:get-identity/attributes/neOrganizationsSuborganizations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "neOrganizationsSuborganizations",
+              "type": "string"
+            },
+            "nePersonId": {
+              "$id": "#sp:get-identity/attributes/nePersonId",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePersonId",
+              "type": "string"
+            },
+            "nePopulations": {
+              "$id": "#sp:get-identity/attributes/nePopulations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulations",
+              "type": "string"
+            },
+            "nePopulationsDepartments": {
+              "$id": "#sp:get-identity/attributes/nePopulationsDepartments",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulationsDepartments",
+              "type": "string"
+            },
+            "nePopulationsJobtitles": {
+              "$id": "#sp:get-identity/attributes/nePopulationsJobtitles",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulationsJobtitles",
+              "type": "string"
+            },
+            "nePopulationsLocations": {
+              "$id": "#sp:get-identity/attributes/nePopulationsLocations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulationsLocations",
+              "type": "string"
+            },
+            "nePopulationsOrganizationsSuborganizations": {
+              "$id": "#sp:get-identity/attributes/nePopulationsOrganizationsSuborganizations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulationsOrganizationsSuborganizations",
+              "type": "string"
+            },
+            "nePopulationsStartEndDates": {
+              "$id": "#sp:get-identity/attributes/nePopulationsStartEndDates",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulationsStartEndDates",
+              "type": "string"
+            },
+            "nePopulationsSubpopulations": {
+              "$id": "#sp:get-identity/attributes/nePopulationsSubpopulations",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nePopulationsSubpopulations",
+              "type": "string"
+            },
+            "nextProcessing": {
+              "$id": "#sp:get-identity/attributes/nextProcessing",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "nextProcessing",
+              "type": "string"
+            },
+            "organization": {
+              "$id": "#sp:get-identity/attributes/organization",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "organization",
+              "type": "string"
+            },
+            "personalEmail": {
+              "$id": "#sp:get-identity/attributes/personalEmail",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "personalEmail",
+              "type": "string"
+            },
+            "phone": {
+              "$id": "#sp:get-identity/attributes/phone",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "phone",
+              "type": "string"
+            },
+            "postalCode": {
+              "$id": "#sp:get-identity/attributes/postalCode",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "postalCode",
+              "type": "string"
+            },
+            "preferredLanguage": {
+              "$id": "#sp:get-identity/attributes/preferredLanguage",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "preferredLanguage",
+              "type": "string"
+            },
+            "preferredName": {
+              "$id": "#sp:get-identity/attributes/preferredName",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "preferredName",
+              "type": "string"
+            },
+            "startDate": {
+              "$id": "#sp:get-identity/attributes/startDate",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "startDate",
+              "type": "string"
+            },
+            "state": {
+              "$id": "#sp:get-identity/attributes/state",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "state",
+              "type": "string"
+            },
+            "streetAddress": {
+              "$id": "#sp:get-identity/attributes/streetAddress",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "streetAddress",
+              "type": "string"
+            },
+            "timezone": {
+              "$id": "#sp:get-identity/attributes/timezone",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "timezone",
+              "type": "string"
+            },
+            "title": {
+              "$id": "#sp:get-identity/attributes/title",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "title",
+              "type": "string"
+            },
+            "types": {
+              "$id": "#sp:get-identity/attributes/types",
+              "default": "",
+              "examples": "",
+              "pattern": "^.*$",
+              "title": "types",
+              "type": "string"
+            },
+            "uid": {
+              "$id": "#sp:get-identity/attributes/uid",
+              "default": "",
+              "examples": [
+                "Abdiel.admin6ef3c229"
+              ],
+              "pattern": "^.*$",
+              "title": "uid",
+              "type": "string"
+            },
+            "workPhone": {
+              "$id": "#sp:get-identity/attributes/workPhone",
+              "default": "",
+              "examples": [
+                "512-942-7578"
+              ],
+              "pattern": "^.*$",
+              "title": "workPhone",
+              "type": "string"
+            }
+          },
+          "title": "attributes",
+          "type": "object"
+        },
+        "cloudStatus": {
+          "$id": "#sp:get-identity/cloudStatus",
+          "default": "",
+          "examples": [
+            "PENDING"
+          ],
+          "pattern": "^.*$",
+          "title": "cloudStatus",
+          "type": "string"
+        },
+        "detectedRoles": {
+          "$id": "#sp:get-identity/detectedRoles",
+          "default": [],
+          "items": {
+            "$id": "#sp:get-identity/detectedRoles/items",
+            "default": "",
+            "examples": [
+              "Bulk-AP-ODS-AD-Source 0"
+            ],
+            "pattern": "^.*$",
+            "title": "items",
+            "type": "string"
+          },
+          "title": "detectedRoles",
+          "type": "array"
+        },
+        "displayName": {
+          "$id": "#sp:get-identity/displayName",
+          "default": "",
+          "examples": [
+            "Abdiel admin6ef3c229"
+          ],
+          "pattern": "^.*$",
+          "title": "displayName",
+          "type": "string"
+        },
+        "emailAddress": {
+          "$id": "#sp:get-identity/emailAddress",
+          "default": "",
+          "examples": [
+            "Abdiel.admin6ef3c229@testmail.com"
+          ],
+          "format": "email",
+          "pattern": "^.*$",
+          "title": "emailAddress",
+          "type": "string"
+        },
+        "id": {
+          "$id": "#sp:get-identity/id",
+          "default": "",
+          "examples": [
+            "2c91808577d06add0177d630740b01c4"
+          ],
+          "pattern": "^.*$",
+          "title": "id",
+          "type": "string"
+        },
+        "isManager": {
+          "$id": "#sp:get-identity/isManager",
+          "default": true,
+          "examples": [
+            true
+          ],
+          "title": "isManager",
+          "type": "boolean"
+        },
+        "lastRefresh": {
+          "$id": "#sp:get-identity/lastRefresh",
+          "default": "",
+          "examples": [
+            "1641523378841"
+          ],
+          "pattern": "^.*$",
+          "title": "lastRefresh",
+          "type": "string"
+        },
+        "lifecycleStateManuallyUpdated": {
+          "$id": "#sp:get-identity/lifecycleStateManuallyUpdated",
+          "default": true,
+          "examples": [
+            false
+          ],
+          "title": "lifecycleStateManuallyUpdated",
+          "type": "boolean"
+        },
+        "managerRef": {
+          "$id": "#sp:get-identity/managerRef",
+          "properties": {
+            "id": {
+              "$id": "#sp:get-identity/managerRef/id",
+              "default": "",
+              "examples": [
+                "2c91808577d06add0177d630801102ae"
+              ],
+              "pattern": "^.*$",
+              "title": "id",
+              "type": "string"
+            },
+            "name": {
+              "$id": "#sp:get-identity/managerRef/name",
+              "default": "",
+              "examples": [
+                "Nicholas.e601fa9592a"
+              ],
+              "pattern": "^.*$",
+              "title": "name",
+              "type": "string"
+            }
+          },
+          "title": "managerRef",
+          "type": "object"
+        },
+        "meta": {
+          "$id": "#sp:get-identity/meta",
+          "properties": {
+            "created": {
+              "$id": "#sp:get-identity/meta/created",
+              "default": "",
+              "examples": [
+                "2021-02-24T22:37:15+00:00"
+              ],
+              "format": "date-time",
+              "pattern": "^.*$",
+              "title": "created",
+              "type": "string"
+            },
+            "modified": {
+              "$id": "#sp:get-identity/meta/modified",
+              "default": "",
+              "examples": [
+                "2022-01-07T02:42:58+00:00"
+              ],
+              "format": "date-time",
+              "pattern": "^.*$",
+              "title": "modified",
+              "type": "string"
+            },
+            "type": {
+              "$id": "#sp:get-identity/meta/type",
+              "default": "",
+              "examples": [
+                "identities"
+              ],
+              "pattern": "^.*$",
+              "title": "type",
+              "type": "string"
+            }
+          },
+          "title": "meta",
+          "type": "object"
+        },
+        "name": {
+          "$id": "#sp:get-identity/name",
+          "default": "",
+          "examples": [
+            "Abdiel.admin6ef3c229"
+          ],
+          "pattern": "^.*$",
+          "title": "name",
+          "type": "string"
+        },
+        "processingState": {
+          "$id": "#sp:get-identity/processingState",
+          "default": null,
+          "examples": [
+            "PENDING"
+          ],
+          "pattern": "^.*$",
+          "title": "processingState",
+          "type": "string"
+        },
+        "profileId": {
+          "$id": "#sp:get-identity/profileId",
+          "default": "",
+          "examples": [
+            "2c91808f77d142290177d63161990341"
+          ],
+          "pattern": "^.*$",
+          "title": "profileId",
+          "type": "string"
+        },
+        "profileRole": {
+          "$id": "#sp:get-identity/profileRole",
+          "default": "",
+          "examples": [
+            "ODS-AD-Profile"
+          ],
+          "pattern": "^.*$",
+          "title": "profileRole",
+          "type": "string"
+        },
+        "riskScore": {
+          "$id": "#sp:get-identity/riskScore",
+          "default": 0,
+          "examples": [
+            0
+          ],
+          "title": "riskScore",
+          "type": "integer"
+        },
+        "stateRole": {
+          "$id": "#sp:get-identity/stateRole",
+          "default": null,
+          "examples": [
+            "A Role"
+          ],
+          "pattern": "^.*$",
+          "title": "stateRole",
+          "type": "string"
+        }
+      },
+      "title": "sp:get-identity",
+      "type": "object"
+    },
+    "exampleOutput": {
+      "displayName": "Abdiel admin6ef3c229",
+      "emailAddress": "Abdiel.admin6ef3c229@testmail.com",
+      "managerRef": {
+        "id": "2c91808577d06add0177d630801102ae",
+        "name": "Nicholas.e601fa9592a"
+      },
+      "riskScore": 0,
+      "attributes": {
+        "uid": "Abdiel.admin6ef3c229",
+        "firstname": "Abdiel",
+        "cloudAuthoritativeSource": "AD-Source",
+        "cloudStatus": "PENDING",
+        "displayName": "Abdiel admin6ef3c229",
+        "internalCloudStatus": "PENDING",
+        "lastSyncDate": "c25374503226ca7d384a6a3b169d38c687d4435fe717f7450c66689ec697e9ab",
+        "workPhone": "512-942-7578",
+        "email": "Abdiel.admin6ef3c229@testmail.com",
+        "lastname": "admin6ef3c229"
+      },
+      "isManager": true,
+      "profileRole": "ODS-AD-Profile",
+      "profileId": "2c91808f77d142290177d63161990341",
+      "stateRole": "A Role",
+      "detectedRoles": [
+        "Bulk-AP-ODS-AD-Source 0"
+      ],
+      "lastRefresh": "1641523378841",
+      "lifecycleStateManuallyUpdated": false,
+      "processingState": "PENDING",
+      "cloudStatus": "PENDING",
+      "id": "2c91808577d06add0177d630740b01c4",
+      "name": "Abdiel.admin6ef3c229",
+      "meta": {
+        "created": "2021-02-24T22:37:15+00:00",
+        "modified": "2022-01-07T02:42:58+00:00",
+        "type": "identities"
+      }
+    },
+    "id": "sp:get-identity",
+    "name": "Get Identity",
+    "description": "Gets a single specific identity and its identity attributes.",
+    "type": "ACTION",
+    "formFields": [
+      {
+        "config": {
+          "max": 1
+        },
+        "helpText": "Use the dropdown list to choose an identity or enter a JSONPath expression to an identity\u2019s technical ID to return that identity.",
+        "label": "Identity",
+        "name": "id",
+        "required": true,
+        "type": "identityPicker"
+      },
+      {
+        "helpText": "Select additional attributes to preserve and pass into subsequent steps of the workflow. These are extra attributes that you want added to the output data for your own logging.",
+        "label": "Additional Output Data",
+        "name": "resultSelector",
+        "required": false,
+        "type": "resultSelector"
+      }
+    ],
+    "versionNumber": 2,
+    "deprecated": false,
+    "isDynamicSchema": false,
+    "isSimulationEnabled": true
+  }
+]

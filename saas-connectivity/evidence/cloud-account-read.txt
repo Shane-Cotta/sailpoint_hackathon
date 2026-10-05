@@ -1,0 +1,2 @@
+2026/10/05 14:56:29 Running "std:account:read" with "{\"identity\":\"usr_0d1o8s40k4wn\",\"key\":{\"simple\":{\"id\":\"usr_0d1o8s40k4wn\"}}}"
+{"identity":"usr_0d1o8s40k4wn","uuid":"usr_0d1o8s40k4wn","disabled":false,"locked":false,"attributes":{"id":"usr_0d1o8s40k4wn","userName":"brenda.cooper","disp

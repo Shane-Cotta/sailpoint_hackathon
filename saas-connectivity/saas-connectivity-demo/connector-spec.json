@@ -1,0 +1,187 @@
+{
+  "name": "SaaS Connectivity Demo",
+  "keyType": "simple",
+  "commands": [
+    "std:test-connection",
+    "std:account:list",
+    "std:account:read",
+    "std:entitlement:list",
+    "std:entitlement:read"
+  ],
+  "supportsStatefulCommands": true,
+  "showDebugLoggingOption": true,
+  "sourceConfigInitialValues": {
+    "baseUrl": "https://dugfer5z7k.execute-api.us-east-1.amazonaws.com/v1"
+  },
+  "sourceConfig": [
+    {
+      "type": "menu",
+      "label": "Configuration",
+      "items": [
+        {
+          "type": "section",
+          "sectionTitle": "Demo API connection",
+          "sectionHelpMessage": "Create a demo API key in the SaaS Connectivity Demo web app. Keys and their data expire 7 days after creation.",
+          "docLink": "https://developer.sailpoint.com/docs/connectivity/saas-connectivity",
+          "items": [
+            {
+              "key": "baseUrl",
+              "label": "Demo API base URL",
+              "type": "url",
+              "required": true,
+              "placeholder": "https://dugfer5z7k.execute-api.us-east-1.amazonaws.com/v1"
+            },
+            {
+              "key": "apiKey",
+              "label": "Demo API key",
+              "type": "secret",
+              "required": true,
+              "placeholder": "sck_..."
+            },
+            {
+              "key": "spConnEnableStatefulCommands",
+              "label": "Enable delta aggregation",
+              "type": "checkbox",
+              "required": false
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "accountSchema": {
+    "displayAttribute": "displayName",
+    "identityAttribute": "id",
+    "groupAttribute": "groups",
+    "attributes": [
+      {
+        "name": "id",
+        "type": "string",
+        "description": "Opaque unique identifier assigned by the source"
+      },
+      {
+        "name": "userName",
+        "type": "string",
+        "description": "Login name, unique within the source"
+      },
+      {
+        "name": "displayName",
+        "type": "string",
+        "description": "Full name as shown in the source UI"
+      },
+      {
+        "name": "firstName",
+        "type": "string",
+        "description": "Given name"
+      },
+      {
+        "name": "lastName",
+        "type": "string",
+        "description": "Family name"
+      },
+      {
+        "name": "email",
+        "type": "string",
+        "description": "Primary email address"
+      },
+      {
+        "name": "department",
+        "type": "string",
+        "description": "Department the account belongs to"
+      },
+      {
+        "name": "title",
+        "type": "string",
+        "description": "Job title"
+      },
+      {
+        "name": "manager",
+        "type": "string",
+        "description": "The manager's account id, or null for none"
+      },
+      {
+        "name": "employeeId",
+        "type": "string",
+        "description": "HR employee number"
+      },
+      {
+        "name": "location",
+        "type": "string",
+        "description": "Primary office location"
+      },
+      {
+        "name": "costCenter",
+        "type": "string",
+        "description": "Cost center code used for chargeback"
+      },
+      {
+        "name": "phone",
+        "type": "string",
+        "description": "Contact phone number"
+      },
+      {
+        "name": "active",
+        "type": "boolean",
+        "description": "Whether the account is active. Note this is the inverse of the ISC \"disabled\" flag."
+      },
+      {
+        "name": "locked",
+        "type": "boolean",
+        "description": "Whether the account is locked out of the source"
+      },
+      {
+        "name": "groups",
+        "type": "string",
+        "entitlement": true,
+        "managed": true,
+        "multi": true,
+        "description": "Entitlement ids the account is a member of, as an array of strings"
+      }
+    ]
+  },
+  "entitlementSchemas": [
+    {
+      "type": "group",
+      "displayAttribute": "name",
+      "identityAttribute": "id",
+      "includePermissions": true,
+      "attributes": [
+        {
+          "name": "id",
+          "type": "string",
+          "description": "Opaque unique identifier assigned by the source (grp_...)"
+        },
+        {
+          "name": "name",
+          "type": "string",
+          "description": "Short group name"
+        },
+        {
+          "name": "displayName",
+          "type": "string",
+          "description": "Human-readable group name"
+        },
+        {
+          "name": "description",
+          "type": "string",
+          "description": "What access the group grants"
+        },
+        {
+          "name": "status",
+          "type": "string",
+          "description": "Group lifecycle status (active or deprecated)"
+        },
+        {
+          "name": "created",
+          "type": "string",
+          "description": "ISO-8601 creation time"
+        },
+        {
+          "name": "updated",
+          "type": "string",
+          "description": "ISO-8601 last modification time"
+        }
+      ]
+    }
+  ]
+}

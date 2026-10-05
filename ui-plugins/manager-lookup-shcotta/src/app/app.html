@@ -1,0 +1,94 @@
+<main class="page">
+  <header class="page__header">
+    <div>
+      <h1 class="page__title">Manager Reports Search</h1>
+      <p class="page__subtitle">Pick a manager to see their direct reports.</p>
+    </div>
+    @if (plugin.context(); as ctx) {
+      <div class="page__meta">
+        <p-tag severity="secondary" [value]="ctx.tenant.org" />
+        <span class="page__user">{{ ctx.user.displayName }}</span>
+      </div>
+    }
+  </header>
+  @if (plugin.status() === 'failed') {
+    <p-message severity="error">
+      The App Shell handshake did not complete, so this plugin has no API token. Open the
+      <code>?spPluginDev=</code> URL that <code>sail ui-plugins link</code> printed.
+    </p-message>
+  }
+  @if (error()) {
+    <p-message severity="error" [text]="error()" />
+  }
+  <section class="picker">
+    <label class="picker__label" for="manager">Manager</label>
+    @if (loading()) {
+      <p-skeleton height="2.6rem" width="22rem" />
+    } @else {
+      <p-select
+        inputId="manager"
+        [options]="managers()"
+        optionLabel="name"
+        optionValue="id"
+        [ngModel]="selectedManagerId()"
+        (onChange)="onManagerChange($event.value)"
+        [filter]="true"
+        filterBy="name"
+        [showClear]="true"
+        placeholder="Select a manager"
+        emptyMessage="No identities in this tenant have a manager set"
+        styleClass="picker__select"
+      />
+      <small class="picker__hint">{{ managers().length }} managers · {{ identities().length }} identities loaded</small>
+    }
+  </section>
+  @if (selectedManagerId()) {
+    <p-table
+      [value]="reports()"
+      [paginator]="reports().length > 10"
+      [rows]="10"
+      sortField="name"
+      [sortOrder]="1"
+      styleClass="p-datatable-sm"
+      [tableStyle]="{ 'min-width': '40rem' }"
+    >
+      <ng-template #caption>
+        <div class="table-caption">
+          <span class="spds-h5--semibold">Direct reports</span>
+          <p-tag severity="contrast" [value]="reports().length + ''" />
+        </div>
+      </ng-template>
+      <ng-template #header>
+        <tr>
+          <th pSortableColumn="name">Name <p-sortIcon field="name" /></th>
+          <th>Email</th>
+          <th>Department</th>
+          <th>Type</th>
+        </tr>
+      </ng-template>
+      <ng-template #body let-person>
+        <tr>
+          <td>
+            <div class="cell-person">
+              <p-avatar [label]="initials(person.name)" shape="circle" />
+              <span>{{ person.name }}</span>
+            </div>
+          </td>
+          <td>{{ person.emailAddress || '-' }}</td>
+          <td>{{ attr(person, 'department') }}</td>
+          <td>
+            <p-tag
+              [severity]="typeSeverity(attr(person, 'type'))"
+              [value]="attr(person, 'type')"
+            />
+          </td>
+        </tr>
+      </ng-template>
+      <ng-template #emptymessage>
+        <tr>
+          <td colspan="4" class="cell-empty">This manager has no direct reports in the loaded identities.</td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+</main>

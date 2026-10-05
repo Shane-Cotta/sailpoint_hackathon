@@ -1,0 +1,24 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Dependencies
+node_modules/
+
+# Build / tool output
+dist/
+out-tsc/
+coverage/
+.angular/
+tmp/
+
+# SailPoint CLI local state (never commit tokens)
+.sailpoint/
+
+# Logs and OS cruft
+*.log
+.DS_Store
+Thumbs.db

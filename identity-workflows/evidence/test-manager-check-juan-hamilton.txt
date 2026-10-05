@@ -1,0 +1,368 @@
+test: HTTP 200 {"workflowExecutionId": "3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249"}
+  07:59:15 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Executing
+  07:59:25 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Executing
+  07:59:36 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Executing
+  07:59:46 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Executing
+  07:59:56 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Executing
+  08:00:06 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Executing
+  08:00:16 execution 3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249: Completed
+[
+  {
+    "timestamp": "2026-10-05T14:59:05.785753262Z",
+    "attributes": {
+      "input": {
+        "attributes": {
+          "displayName": "Juan.Hamilton"
+        },
+        "identity": {
+          "id": "868b8cb008c14c4dbe7438aef4257bc8",
+          "name": "Juan.Hamilton",
+          "type": "IDENTITY"
+        }
+      }
+    },
+    "type": "WorkflowExecutionStarted"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.856388253Z",
+    "attributes": {
+      "displayName": "Wait",
+      "input": {
+        "date": null,
+        "duration": "1m",
+        "time": null,
+        "type": "waitFor"
+      },
+      "stepName": "wait",
+      "task": "sp:sleep",
+      "technicalName": "Wait"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.856526402Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Wait",
+      "stepName": "wait",
+      "task": "sp:sleep",
+      "technicalName": "Wait"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.876110605Z",
+    "attributes": {
+      "displayName": "Wait",
+      "result": {
+        "duration": "1m0s"
+      },
+      "stepName": "wait",
+      "task": "sp:sleep",
+      "technicalName": "Wait"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.913411219Z",
+    "attributes": {},
+    "type": "TimerStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:05.917042693Z",
+    "attributes": {},
+    "type": "TimerFired"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:05.963289168Z",
+    "attributes": {
+      "displayName": "Get New Hire",
+      "input": {
+        "id": "868b8cb008c14c4dbe7438aef4257bc8",
+        "method": "GET",
+        "path": "v3/identities/868b8cb008c14c4dbe7438aef4257bc8",
+        "resultSelector": [
+          "$.getIdentity.managerRef.id",
+          "$.getIdentity.attributes.displayName",
+          "$.getIdentity.attributes.department",
+          "$.getIdentity.attributes.jobTitle",
+          "$.getIdentity.id",
+          "$.getIdentity.attributes.email",
+          "$.getIdentity.attributes.uid",
+          "$.getIdentity.attributes.firstname",
+          "$.getIdentity.attributes.lastname",
+          "$.getIdentity.managerRef.name",
+          "$.getIdentity.displayName",
+          "$.getIdentity.emailAddress"
+        ],
+        "service": "mice"
+      },
+      "stepName": "getIdentity",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:05.963465339Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Get New Hire",
+      "stepName": "getIdentity",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.254509323Z",
+    "attributes": {
+      "displayName": "Get New Hire",
+      "result": {
+        "attributes": {
+          "department": "Engineering",
+          "displayName": "Juan.Hamilton",
+          "email": "Juan.Hamilton@sailpointdemo.com",
+          "firstname": "Juan",
+          "jobTitle": "Staging Developer II",
+          "lastname": "Hamilton",
+          "uid": "Juan.Hamilton"
+        },
+        "emailAddress": "Juan.Hamilton@sailpointdemo.com",
+        "id": "868b8cb008c14c4dbe7438aef4257bc8",
+        "managerRef": {
+          "id": "1bceb78e9f714b4ebf65369beb7b4c5b",
+          "name": "Patrick.Jenkins"
+        }
+      },
+      "stepName": "getIdentity",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.303558273Z",
+    "attributes": {
+      "displayName": "Has Manager?",
+      "input": {
+        "Has Manager?": {
+          "ChoiceList": [
+            {
+              "Comparator": "IsPresent",
+              "NextStep": "Get Identity 1",
+              "VariableA.$": "$.getIdentity.managerRef.id"
+            }
+          ],
+          "DefaultStep": "Send Email No Manager",
+          "DisplayName": "Has Manager?",
+          "Name": "Has Manager?",
+          "SelectInput": "$",
+          "SelectOutput": "$",
+          "SelectResult": "$",
+          "Type": "choice"
+        },
+        "getIdentity": {
+          "attributes": {
+            "department": "Engineering",
+            "displayName": "Juan.Hamilton",
+            "email": "Juan.Hamilton@sailpointdemo.com",
+            "firstname": "Juan",
+            "jobTitle": "Staging Developer II",
+            "lastname": "Hamilton",
+            "uid": "Juan.Hamilton"
+          },
+          "emailAddress": "Juan.Hamilton@sailpointdemo.com",
+          "id": "868b8cb008c14c4dbe7438aef4257bc8",
+          "managerRef": {
+            "id": "1bceb78e9f714b4ebf65369beb7b4c5b",
+            "name": "Patrick.Jenkins"
+          }
+        }
+      },
+      "stepName": "Has Manager?",
+      "task": "sp:internal:operator",
+      "technicalName": "Has Manager?"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.303685682Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Has Manager?",
+      "stepName": "Has Manager?",
+      "task": "sp:internal:operator",
+      "technicalName": "Has Manager?"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.325672715Z",
+    "attributes": {
+      "displayName": "Has Manager?",
+      "result": {
+        "next": "Get Identity 1",
+        "output": true
+      },
+      "stepName": "Has Manager?",
+      "task": "sp:internal:operator",
+      "technicalName": "Has Manager?"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.381869215Z",
+    "attributes": {
+      "displayName": "Get Manager",
+      "input": {
+        "id": "1bceb78e9f714b4ebf65369beb7b4c5b",
+        "method": "GET",
+        "path": "v3/identities/1bceb78e9f714b4ebf65369beb7b4c5b",
+        "resultSelector": [
+          "$.getIdentity1.emailAddress",
+          "$.getIdentity1.id",
+          "$.getIdentity1.attributes.displayName",
+          "$.getIdentity1.attributes.email",
+          "$.getIdentity1.displayName"
+        ],
+        "service": "mice"
+      },
+      "stepName": "getIdentity1",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity 1"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.381985169Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Get Manager",
+      "stepName": "getIdentity1",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity 1"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.416168019Z",
+    "attributes": {
+      "displayName": "Get Manager",
+      "result": {
+        "attributes": {
+          "displayName": "Patrick.Jenkins",
+          "email": "Patrick.Jenkins@sailpointdemo.com"
+        },
+        "emailAddress": "Patrick.Jenkins@sailpointdemo.com",
+        "id": "1bceb78e9f714b4ebf65369beb7b4c5b"
+      },
+      "stepName": "getIdentity1",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity 1"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.456173583Z",
+    "attributes": {
+      "displayName": "Send Onboarding Email",
+      "input": {
+        "body": {
+          "blindCarbonCopy": null,
+          "carbonCopy": null,
+          "context": {},
+          "emailTemplate": {
+            "body": "A new identity has been created in SHF.<br/><br/>Name: Juan.Hamilton<br/>Department: Engineering<br/>Job title: Staging Developer II<br/>Reports to: Patrick.Jenkins (Patrick.Jenkins@sailpointdemo.com)",
+            "from": "",
+            "replyTo": "",
+            "subject": "A new identity Juan.Hamilton has been created in SHF"
+          },
+          "medium": "EMAIL",
+          "recipientEmailList": "REPLACE_WITH_YOUR_EMAIL@example.com"
+        },
+        "context": {},
+        "method": "POST",
+        "path": "notification/send-notification",
+        "recipientEmailList": [
+          "REPLACE_WITH_YOUR_EMAIL@example.com"
+        ],
+        "service": "hermes",
+        "subject": "A new identity Juan.Hamilton has been created in SHF",
+        "suppliedInlineExpression": {
+          "body": "A new identity has been created in SHF.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})",
+          "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF"
+        },
+        "useInternalClient": true
+      },
+      "stepName": "sendEmail",
+      "task": "sp:send-email",
+      "technicalName": "Send Email"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.456306695Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Send Onboarding Email",
+      "stepName": "sendEmail",
+      "task": "sp:send-email",
+      "technicalName": "Send Email"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:07.137253438Z",
+    "attributes": {
+      "displayName": "Send Onboarding Email",
+      "result": {},
+      "stepName": "sendEmail",
+      "task": "sp:send-email",
+      "technicalName": "Send Email"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:07.175349651Z",
+    "attributes": {
+      "displayName": "End Step - Success",
+      "input": {},
+      "stepName": "End Step - Success",
+      "task": "sp:internal:operator",
+      "technicalName": "End Step - Success"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:07.175483591Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "End Step - Success",
+      "stepName": "End Step - Success",
+      "task": "sp:internal:operator",
+      "technicalName": "End Step - Success"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:07.195353422Z",
+    "attributes": {
+      "displayName": "End Step - Success",
+      "result": {},
+      "stepName": "End Step - Success",
+      "task": "sp:internal:operator",
+      "technicalName": "End Step - Success"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:07.23105556Z",
+    "attributes": {
+      "result": {
+        "3c0ed2ab-25c9-4c4e-b857-e80d9b5d4249": "01a10c93-59b9-7b7a-aa2f-5b68c1d2b370"
+      }
+    },
+    "type": "WorkflowExecutionCompleted"
+  }
+]

@@ -1,0 +1,28 @@
+{
+    "version": 1,
+    "manifest": {
+        "alias": "manager-lookup-shcotta",
+        "name": {
+            "en": "Manager Lookup (shcotta)"
+        },
+        "description": {
+            "en": "Hack Day UI Plugins track: pick a manager, see their direct reports."
+        },
+        "apiScopes": [
+            "sp:scopes:all"
+        ],
+        "permissionPolicy": {},
+        "iframeAllow": {},
+        "contentSecurityPolicies": {},
+        "slots": [
+            {
+                "slotId": "full-page"
+            }
+        ],
+        "state": "ENABLED"
+    },
+    "build": {
+        "outDir": "./dist/manager-lookup-shcotta/browser",
+        "port": 4200
+    }
+}
