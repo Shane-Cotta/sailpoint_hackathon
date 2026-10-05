@@ -200,8 +200,21 @@ def main() -> int:
             "description": "Input: {identityId, flag, detail}",
         }},
     }
+    # The Team Access Radar UI plugin can't hold the external trigger's OAuth
+    # secret (it runs in the browser), so it starts this copy through the
+    # workflow *test* endpoint as the signed-in user. That endpoint only runs
+    # DISABLED workflows and passes the input as the trigger itself, so the
+    # copy reads $.trigger.* instead of $.trigger.input.* -- otherwise identical.
+    radar_wf = json.loads(json.dumps(flagged_wf).replace("$.trigger.input.", "$.trigger."))
+    radar_wf["name"] = f"{a.name} Flagged Report to Manager (Radar)"
+    radar_wf["description"] = (
+        "Started by the Team Access Radar UI plugin via the workflow test endpoint. "
+        "Keep DISABLED: the test endpoint only runs disabled workflows."
+    )
+    radar_wf["trigger"]["attributes"]["name"] = "flagged-report-to-manager-radar"
     for fname, wf in (
         ("flagged-report-to-manager.workflow.json", flagged_wf),
+        ("flagged-report-to-manager-radar.workflow.json", radar_wf),
         ("identity-onboarding.workflow.json", main_wf),
         ("identity-onboarding-manager-check.workflow.json", check_wf),
         ("identity-onboarding-to-manager.workflow.json", mgr_wf),

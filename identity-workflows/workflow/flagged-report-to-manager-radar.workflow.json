@@ -1,0 +1,74 @@
+{
+  "name": "Shane Cotta Flagged Report to Manager (Radar)",
+  "description": "Started by the Team Access Radar UI plugin via the workflow test endpoint. Keep DISABLED: the test endpoint only runs disabled workflows.",
+  "enabled": false,
+  "definition": {
+    "start": "Get Identity",
+    "steps": {
+      "Get Identity": {
+        "actionId": "sp:get-identity",
+        "attributes": {
+          "id.$": "$.trigger.identityId"
+        },
+        "displayName": "Get Flagged Report",
+        "nextStep": "Has Manager?",
+        "type": "action",
+        "versionNumber": 2
+      },
+      "Has Manager?": {
+        "choiceList": [
+          {
+            "comparator": "IsPresent",
+            "nextStep": "Get Identity 1",
+            "variableA.$": "$.getIdentity.managerRef.id"
+          }
+        ],
+        "defaultStep": "End Step - No Manager",
+        "displayName": "Has Manager?",
+        "type": "choice"
+      },
+      "Get Identity 1": {
+        "actionId": "sp:get-identity",
+        "attributes": {
+          "id.$": "$.getIdentity.managerRef.id"
+        },
+        "displayName": "Get Manager",
+        "nextStep": "Send Email",
+        "type": "action",
+        "versionNumber": 2
+      },
+      "Send Email": {
+        "actionId": "sp:send-email",
+        "attributes": {
+          "body": "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>Your report {{ $.getIdentity.attributes.displayName }} ({{ $.getIdentity.attributes.department }}, {{ $.getIdentity.attributes.jobTitle }}) was flagged in a team access review.<br/><br/>Reason: {{ $.trigger.flag }}<br/>Details: {{ $.trigger.detail }}<br/><br/>Please review their access or revoke it in the open certification.",
+          "context": {},
+          "subject": "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.flag }})",
+          "recipientEmailList": [
+            "shane.cotta+hackday@gmail.com"
+          ]
+        },
+        "displayName": "Email Manager",
+        "nextStep": "End Step - Success",
+        "type": "action",
+        "versionNumber": 2
+      },
+      "End Step - Success": {
+        "actionId": "sp:operator-success",
+        "displayName": "",
+        "type": "success"
+      },
+      "End Step - No Manager": {
+        "actionId": "sp:operator-success",
+        "displayName": "",
+        "type": "success"
+      }
+    }
+  },
+  "trigger": {
+    "type": "EXTERNAL",
+    "attributes": {
+      "name": "flagged-report-to-manager-radar",
+      "description": "Input: {identityId, flag, detail}"
+    }
+  }
+}
