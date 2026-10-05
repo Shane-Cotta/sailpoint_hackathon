@@ -59,15 +59,6 @@ flowchart TB
 5. **Mid-flight correction.** When the UI agent hit the firewall trying to reach its own sandbox IP, the orchestrator sent it a message: use `localhost`, and also write a human-readable README.
 6. **The orchestrator verifies; it doesn't just trust.** Every branch was checked for changes outside its folder and for the PAT secret and demo API key anywhere in its history. All came back clean.
 
-## Where the human stayed in the loop
-| Gate | Why it's human |
-|---|---|
-| Firewall approvals (developer.sailpoint.com, tenant hosts, the demo app) | Each new outbound host is a policy decision |
-| Use case and client choice | It's a product decision |
-| Creating the demo certification campaign | It changes a shared tenant |
-| Inspector safety override, which we replaced with running it natively on the Mac | It's a security trade-off |
-| Merging branches, pushing | Nothing leaves the machine without a yes |
-
 ## Lessons learned
 - **Shared tool state collides.** The agents shared `~/.sailpoint/config.yaml` and the orchestrator's scratch folder. The SaaS agent switched to its own CLI config folder. Next time, give each agent its own config folder up front.
 - **Debug flags persist.** One `sail --debug` run saved debug mode to the config, and the next command printed a short-lived token into the session. `CLAUDE.md` now says *never use `--debug`*.
