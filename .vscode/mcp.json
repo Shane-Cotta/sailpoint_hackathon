@@ -1,0 +1,21 @@
+{
+  // VS Code native MCP (Copilot agent mode / Chat). Both entries run the same
+  // per-OS launcher. Start one from MCP: List Servers (or the code lens here).
+  //   sailpoint        -- normal use
+  //   sailpoint-debug  -- same server under debugpy on 127.0.0.1:5678; then run
+  //                       "Attach to MCP server (sailpoint-debug)" in Run and Debug
+  //                       and your breakpoints in tools/ hit on every chat tool call.
+  "servers": {
+    "sailpoint": {
+      "type": "stdio",
+      "command": "/bin/sh",
+      "args": ["${workspaceFolder}/python-mcp-server-template/scripts/run-server.sh"]
+    },
+    "sailpoint-debug": {
+      "type": "stdio",
+      "command": "/bin/sh",
+      "args": ["${workspaceFolder}/python-mcp-server-template/scripts/run-server.sh"],
+      "env": { "SAILPOINT_MCP_DEBUG_PORT": "5678" }
+    }
+  }
+}

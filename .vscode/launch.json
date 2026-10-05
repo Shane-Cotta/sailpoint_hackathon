@@ -1,0 +1,197 @@
+{
+  // Everything runs from the Run and Debug dropdown (⇧⌘D, pick an entry, press ▶).
+  // First time on this Mac: run "1. Setup" once, then anything else.
+  // Python entries run under the debugger, so breakpoints in src/ just work.
+  // Node entries (UI plugin, connector) install their own node_modules for this OS on first run.
+  "version": "0.2.0",
+  "inputs": [
+    {
+      "id": "tool",
+      "type": "pickString",
+      "description": "Tool to call",
+      "options": ["review_team_access", "get_identity_access", "get_manager_pending_reviews", "search_identities", "notify_manager"],
+      "default": "review_team_access"
+    },
+    {
+      "id": "toolArgs",
+      "type": "promptString",
+      "description": "Tool arguments as JSON",
+      "default": "{\"manager\": \"Douglas.Flores\"}"
+    }
+  ],
+  "configurations": [
+    // ---------------------------------------------------------------- setup
+    {
+      "name": "1. Setup: install / update environment",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": ". scripts/env.sh && uv sync --extra dev && echo && echo 'Environment ready.'",
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "presentation": { "group": "1 setup", "order": 1 }
+    },
+    {
+      "name": "2. Test: unit tests",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "module": "pytest",
+      "args": ["-q", "tests"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "presentation": { "group": "1 setup", "order": 2 }
+    },
+    {
+      "name": "3. Test: tenant connection",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/check_auth.py",
+      "args": ["Adam Kennedy"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "presentation": { "group": "1 setup", "order": 3 }
+    },
+
+    // ----------------------------------------------------------------- demo
+    {
+      "name": "Demo 1: review Douglas.Flores's team",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/call_tool.py",
+      "args": ["review_team_access", "{\"manager\": \"Douglas.Flores\"}"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "presentation": { "group": "2 demo", "order": 1 }
+    },
+    {
+      "name": "Demo 2: Brandon.Mason's privileged access",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/call_tool.py",
+      "args": ["get_identity_access", "{\"identity\": \"Brandon.Mason\", \"kind\": \"privileged\"}"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "presentation": { "group": "2 demo", "order": 2 }
+    },
+    {
+      "name": "Demo 3: Douglas.Flores's pending reviews",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/call_tool.py",
+      "args": ["get_manager_pending_reviews", "{\"manager\": \"Douglas.Flores\"}"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "presentation": { "group": "2 demo", "order": 3 }
+    },
+    {
+      "name": "Demo 4: email Douglas about Brandon (sends email)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/call_tool.py",
+      "args": ["notify_manager", "{\"identity\": \"Brandon.Mason\", \"flag\": \"privileged_access (high)\", \"detail\": \"Holds privileged Active Directory: AccountingGeneral that no one else on the team has.\"}"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "presentation": { "group": "2 demo", "order": 4 }
+    },
+    {
+      "name": "Demo setup: create demo campaign (if missing)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/create_demo_campaign.py",
+      "args": ["Douglas.Flores"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "presentation": { "group": "2 demo", "order": 5 }
+    },
+
+    // ---------------------------------------------------------------- tools
+    {
+      "name": "Tool: call any tool…",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/scripts/call_tool.py",
+      "args": ["${input:tool}", "${input:toolArgs}"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "console": "integratedTerminal",
+      "justMyCode": false,
+      "presentation": { "group": "3 tools", "order": 1 }
+    },
+    {
+      "name": "Tool: MCP Inspector (browser)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "npx -y @modelcontextprotocol/inspector@latest /bin/sh scripts/run-server.sh",
+      "cwd": "${workspaceFolder}/python-mcp-server-template",
+      "presentation": { "group": "3 tools", "order": 2 }
+    },
+    {
+      // Start the "sailpoint-debug" server first (MCP: List Servers); it waits on 127.0.0.1:5678.
+      "name": "Tool: attach to MCP server (sailpoint-debug)",
+      "type": "debugpy",
+      "request": "attach",
+      "connect": { "host": "127.0.0.1", "port": 5678 },
+      "justMyCode": false,
+      "presentation": { "group": "3 tools", "order": 3 }
+    },
+
+    // ----------------------------------------------------------- other tracks
+    {
+      "name": "Team Access Radar (UI plugin): dev server",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "m=node_modules/.installed-$(uname -s); [ -f $m ] || { rm -rf node_modules && npx -y npm@11 install && touch $m; } && npm start",
+      "cwd": "${workspaceFolder}/python-mcp-server-template/ui-plugins/manager-lookup-shcotta",
+      "presentation": { "group": "2 demo", "order": 6 }
+    },
+    {
+      "name": "Team Access Radar (UI plugin): unit tests",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "m=node_modules/.installed-$(uname -s); [ -f $m ] || { rm -rf node_modules && npx -y npm@11 install && touch $m; } && npx ng test --watch=false",
+      "cwd": "${workspaceFolder}/python-mcp-server-template/ui-plugins/manager-lookup-shcotta",
+      "presentation": { "group": "4 other tracks", "order": 1 }
+    },
+    {
+      "name": "Identity Workflows: validate workflow files",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/identity-workflows/scripts/validate_workflow.py",
+      "args": [
+        "workflow/identity-onboarding.workflow.json",
+        "workflow/identity-onboarding-manager-check.workflow.json",
+        "workflow/identity-onboarding-to-manager.workflow.json",
+        "workflow/flagged-report-to-manager.workflow.json"
+      ],
+      "cwd": "${workspaceFolder}/python-mcp-server-template/identity-workflows",
+      "console": "integratedTerminal",
+      "presentation": { "group": "4 other tracks", "order": 2 }
+    },
+    {
+      "name": "Identity Workflows: test onboarding email (sends email)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/python-mcp-server-template/identity-workflows/scripts/isc.py",
+      "args": ["test", "workflow/identity-onboarding.workflow.json", "868b8cb008c14c4dbe7438aef4257bc8", "Juan.Hamilton"],
+      "cwd": "${workspaceFolder}/python-mcp-server-template/identity-workflows",
+      "console": "integratedTerminal",
+      "presentation": { "group": "4 other tracks", "order": 3 }
+    },
+    {
+      "name": "SaaS connector: unit tests (installs on first run)",
+      "type": "node-terminal",
+      "request": "launch",
+      "command": "m=node_modules/.installed-$(uname -s); [ -f $m ] || { rm -rf node_modules && npm install && touch $m; } && npm test",
+      "cwd": "${workspaceFolder}/python-mcp-server-template/saas-connectivity/saas-connectivity-demo",
+      "presentation": { "group": "4 other tracks", "order": 4 }
+    }
+  ]
+}

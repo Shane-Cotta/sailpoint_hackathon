@@ -1,13 +1,8 @@
-.env
-config.json
-.venv/
-venv/
-__pycache__/
-*.py[cod]
-*.egg-info/
-dist/
-build/
-.pytest_cache/
+# Workspace root. Each folder below keeps its own .gitignore for its secrets
+# (.env, connector config.json), virtualenvs and node_modules.
 .DS_Store
-mcp-inspector.json
-.venv-mac/
+**/.env
+**/node_modules/
+**/.venv/
+**/.venv-mac/
+**/__pycache__/

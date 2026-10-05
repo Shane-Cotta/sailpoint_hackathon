@@ -1,0 +1,16 @@
+{
+  "python.defaultInterpreterPath": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+  "python.testing.pytestEnabled": true,
+  "python.testing.unittestEnabled": false,
+  "python.testing.cwd": "${workspaceFolder}/python-mcp-server-template",
+  "python.testing.pytestArgs": ["tests"],
+  "python.envFile": "${workspaceFolder}/python-mcp-server-template/.env",
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": false,
+    "copilot": false,
+    "windsurf": false,
+    "cursor-global": false,
+    "cursor-workspace": false
+  },
+  "files.exclude": { "**/.venv": true, "**/.venv-mac": true, "**/node_modules": true }
+}
