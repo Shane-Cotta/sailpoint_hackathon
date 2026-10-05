@@ -1,0 +1,24 @@
+# python3 isc_source.py info
+{
+  "name": "SaaS Connectivity Demo (tag: latest)",
+  "type": "a99fcdeb-2667-4ec9-9a20-f99588f9046a",
+  "scriptName": "a99fcdeb-2667-4ec9-9a20-f99588f9046a",
+  "className": null,
+  "status": "RELEASED"
+}
+source: {'id': '796ddbe4f7844c01a6d43f0cb39b85d4', 'name': 'SaaS Connectivity Demo (Hack Day)', 'connector': 'a99fcdeb-2667-4ec9-9a20-f99588f9046a', 'status': 'SOURCE_STATE_HEALTHY'}
+
+# python3 isc_source.py test
+test-configuration HTTP 200 {"status": "SUCCESS", "id": "796ddbe4f7844c01a6d43f0cb39b85d4", "name": "SaaS Connectivity Demo (Hack Day) [source-1791212353660]", "details": null, "elapsedMillis": 923}
+
+# python3 isc_source.py status
+accounts: 50
+entitlements: 8
+  contractor             privileged=False
+  finance-approver       privileged=False
+  user                   privileged=False
+  admin                  privileged=True
+  support-agent          privileged=False
+  hr-manager             privileged=False
+  readonly               privileged=False
+  engineering            privileged=False

@@ -4,7 +4,6 @@ import {
     logger,
     readConfig,
     Response,
-    SimpleKey,
     StdAccountListInput,
     StdAccountListOutput,
     StdAccountReadInput,
@@ -48,7 +47,8 @@ export const toAccount = (account: any): StdAccountReadOutput => ({
 export const toEntitlement = (entitlement: any): StdEntitlementListOutput => ({
     identity: entitlement.id,
     uuid: entitlement.id,
-    key: SimpleKey(entitlement.id),
+    // No `key: SimpleKey(...)` here, although the guide's step-8 recap adds one: sending identity/uuid AND key
+    // made ISC reject every entitlement ("invalid output format ... $ref ref_mismatch") during aggregation.
     type: 'group',
     deleted: false,
     attributes: {
