@@ -1,3 +1,44 @@
+# Hack Day entry: Manager Team Access Review (MCP Server)
+
+**The problem.** Managers sign off on access reviews they can't really evaluate. They see a long list
+of cryptic entitlements and approve all of it. What they need is someone to say *"these three things on
+your team look wrong, and here's why."*
+
+**What we built.** Three new tools on SailPoint's MCP server template. Any AI assistant (Claude, Cursor,
+ChatGPT desktop, ...) can use them to answer that question in plain language:
+
+| Tool | Answers |
+|---|---|
+| `review_team_access` | "Review my team's access." Lists the manager's direct reports, the access most of the team shares, and a ranked list of flags, each with a one-line reason. |
+| `get_identity_access` | "What exactly does Brandon have?" One person's roles, access profiles, entitlements, accounts and privileged items. |
+| `get_manager_pending_reviews` | "What's waiting on me?" Open certifications, active campaigns, and pending access requests for the team. |
+
+**What gets flagged** (simple rules a manager can check for themselves):
+- 🔴 **Leaver risk**: inactive or terminated but still holding access.
+- 🔴 **Privileged access no one else on the team has.**
+- 🟠 **Privileged access** in general, **unique access** (items no teammate has), and **access outliers** (far above the team median).
+- 🟡 **Missing baseline**: lacks what nearly everyone else has, so probably not fully onboarded. **No roles**: access granted piecemeal in a team that normally uses roles.
+
+**Live example** (demo tenant): *"Review Douglas.Flores's team."* Brandon Mason, an Accounts Payable
+Analyst, is flagged **high** because he holds the privileged `AccountingGeneral` entitlement that nobody else on the team has, plus
+`ENG_Prod`. In Martena Heath's 19-person call center, April Rios is flagged because she lacks all 8 baseline
+items, so she was never fully onboarded.
+
+**Try it**
+```bash
+.venv/bin/python -m pytest -q                            # 39 tests, no tenant needed
+.venv/bin/python scripts/check_auth.py "Adam Kennedy"    # needs .env with a PAT
+claude mcp add sailpoint -- "$(pwd)/.venv/bin/python" -m sailpoint_mcp
+```
+Then ask: *"Review Douglas.Flores's team access and tell me what to look at first."*
+
+**Status:** all three tools work against the live demo tenant. That tenant has no certification campaigns or pending
+requests, so the pending-reviews tool runs fine but comes back empty there.
+
+The original template documentation follows.
+
+---
+
 # SailPoint MCP Server
 
 An MCP (Model Context Protocol) server that gives an AI assistant real access to
