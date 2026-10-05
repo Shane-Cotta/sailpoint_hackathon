@@ -22,6 +22,9 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
 from sailpoint import CertificationCampaignsApi  # noqa: E402
+from sailpoint.certification_campaigns.models.activate_campaign_options import (  # noqa: E402
+    ActivateCampaignOptions,
+)
 from sailpoint.certification_campaigns.models.campaign2 import Campaign2  # noqa: E402
 from sailpoint.certification_campaigns.models.campaign2_all_of_search_campaign_info import (  # noqa: E402
     Campaign2AllOfSearchCampaignInfo,
@@ -63,8 +66,12 @@ def activate_when_staged(name: str) -> int:
             print(f"OK  {name} is {status} id={campaign['id']}")
             return 0
         if status == "STAGED":
+            # The endpoint rejects an empty body, so always send the options.
             call_sailpoint(
-                lambda c: CertificationCampaignsApi(c).start_campaign_v1(id=campaign["id"])
+                lambda c: CertificationCampaignsApi(c).start_campaign_v1(
+                    id=campaign["id"],
+                    activate_campaign_options=ActivateCampaignOptions(time_zone="Z"),
+                )
             )
             print(f"OK  activation requested for id={campaign['id']}")
             return 0
