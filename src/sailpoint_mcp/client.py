@@ -135,6 +135,39 @@ def call_sailpoint(operation: Callable[[ApiClient], T]) -> T:
         return operation(get_api_client(force_refresh=True))
 
 
+# Clients for other credential pairs (e.g. a workflow's external-trigger OAuth
+# client), keyed by client id: (client, created_at).
+_other_clients: dict[str, tuple[ApiClient, float]] = {}
+
+
+def call_sailpoint_as(
+    settings: SailPointSettings, operation: Callable[[ApiClient], T]
+) -> T:
+    """Like `call_sailpoint`, but authenticated as a different client.
+
+    Some endpoints only accept a purpose-made client -- a workflow's external
+    trigger, for one, rejects the PAT. Same caching, ageing and 401 retry.
+    """
+
+    def client(force_refresh: bool = False) -> ApiClient:
+        with _lock:
+            cached = _other_clients.get(settings.client_id)
+            if (
+                cached is None
+                or force_refresh
+                or time.monotonic() - cached[1] > _TOKEN_MAX_AGE_SECONDS
+            ):
+                cached = (_build_client(settings), time.monotonic())
+                _other_clients[settings.client_id] = cached
+            return cached[0]
+
+    try:
+        return operation(client())
+    except UnauthorizedException:
+        log.info("SailPoint token rejected for %s; retrying once", settings.client_id)
+        return operation(client(force_refresh=True))
+
+
 def describe_api_error(exc: Exception) -> str:
     """Turn an SDK exception into something an LLM (and a human) can act on."""
     if isinstance(exc, (SailPointAuthError, ConfigError)):

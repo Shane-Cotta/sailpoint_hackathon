@@ -289,7 +289,12 @@ def test_as_dict_unwraps_anyof_models():
 # --- registration --------------------------------------------------------------
 
 
-NEW_TOOLS = {"review_team_access", "get_identity_access", "get_manager_pending_reviews"}
+NEW_TOOLS = {
+    "review_team_access",
+    "get_identity_access",
+    "get_manager_pending_reviews",
+    "notify_manager",
+}
 
 
 def test_new_tools_register_with_descriptions():

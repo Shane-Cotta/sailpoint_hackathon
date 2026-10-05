@@ -157,7 +157,8 @@ def main() -> int:
             "steps": {
                 "Get Identity": {
                     "actionId": "sp:get-identity",
-                    "attributes": {"id.$": "$.trigger.identityId"},
+                    # External triggers deliver the POSTed body under `input`.
+                    "attributes": {"id.$": "$.trigger.input.identityId"},
                     "displayName": "Get Flagged Report",
                     "nextStep": "Has Manager?",
                     "type": "action",
@@ -181,12 +182,12 @@ def main() -> int:
                 "Send Email": send_email_step(
                     # Swap for {"recipientEmailList.$": "$.getIdentity1.emailAddress"} to mail the real manager.
                     {"recipientEmailList": [a.recipient]},
-                    "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.flag }})",
+                    "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.input.flag }})",
                     "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>"
                     "Your report {{ $.getIdentity.attributes.displayName }} "
                     "({{ $.getIdentity.attributes.department }}, {{ $.getIdentity.attributes.jobTitle }}) "
                     "was flagged in a team access review.<br/><br/>"
-                    "Reason: {{ $.trigger.flag }}<br/>Details: {{ $.trigger.detail }}<br/><br/>"
+                    "Reason: {{ $.trigger.input.flag }}<br/>Details: {{ $.trigger.input.detail }}<br/><br/>"
                     "Please review their access or revoke it in the open certification.",
                     "Email Manager",
                 ),

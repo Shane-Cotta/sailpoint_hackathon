@@ -254,6 +254,13 @@ def cmd_update(path):
     wid = owned_id(path)
     st, cur = call("GET", f"{wf_prefix()}/{wid}")
     body = {k: wf[k] for k in ("name", "description", "definition", "trigger")}
+    # Keep server-managed trigger attributes (an external trigger's OAuth client
+    # id, integration id); a PUT without them silently revokes the client.
+    body["trigger"] = dict(body["trigger"])
+    body["trigger"]["attributes"] = {
+        **((cur.get("trigger") or {}).get("attributes") or {}),
+        **(wf["trigger"].get("attributes") or {}),
+    }
     body["enabled"] = cur.get("enabled", False)
     if cur.get("owner"):
         body["owner"] = cur["owner"]

@@ -66,3 +66,31 @@ def load_settings() -> SailPointSettings:
         client_id=os.environ["SAIL_CLIENT_ID"],
         client_secret=os.environ["SAIL_CLIENT_SECRET"],
     )
+
+
+FLAGGED_WORKFLOW_VARS = (
+    "SAIL_FLAGGED_WORKFLOW_ID",
+    "SAIL_FLAGGED_WORKFLOW_CLIENT_ID",
+    "SAIL_FLAGGED_WORKFLOW_CLIENT_SECRET",
+)
+
+
+def load_flagged_workflow() -> tuple[str, SailPointSettings]:
+    """Workflow id + external-trigger credentials for `notify_manager`.
+
+    Optional feature: the rest of the server works without these variables.
+    """
+    base = load_settings()
+    missing = [name for name in FLAGGED_WORKFLOW_VARS if not os.environ.get(name)]
+    if missing:
+        raise ConfigError(
+            "Manager notifications are not configured: missing "
+            + ", ".join(missing)
+            + ". Create the 'Flagged Report to Manager' workflow, generate its "
+            "external-trigger OAuth client, and add the values to .env."
+        )
+    return os.environ["SAIL_FLAGGED_WORKFLOW_ID"], SailPointSettings(
+        base_url=base.base_url,
+        client_id=os.environ["SAIL_FLAGGED_WORKFLOW_CLIENT_ID"],
+        client_secret=os.environ["SAIL_FLAGGED_WORKFLOW_CLIENT_SECRET"],
+    )

@@ -27,7 +27,8 @@ connected tenant instead of guessing or asking the user to check the UI.
 
 For a manager reviewing their team: start with review_team_access, drill into a
 flagged person with get_identity_access, and check open certifications and
-pending requests with get_manager_pending_reviews.
+pending requests with get_manager_pending_reviews. When the user asks to alert
+or escalate, notify_manager emails the person's manager -- never call it unasked.
 """
 
 

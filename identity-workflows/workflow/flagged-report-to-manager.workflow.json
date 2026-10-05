@@ -8,7 +8,7 @@
       "Get Identity": {
         "actionId": "sp:get-identity",
         "attributes": {
-          "id.$": "$.trigger.identityId"
+          "id.$": "$.trigger.input.identityId"
         },
         "displayName": "Get Flagged Report",
         "nextStep": "Has Manager?",
@@ -40,9 +40,9 @@
       "Send Email": {
         "actionId": "sp:send-email",
         "attributes": {
-          "body": "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>Your report {{ $.getIdentity.attributes.displayName }} ({{ $.getIdentity.attributes.department }}, {{ $.getIdentity.attributes.jobTitle }}) was flagged in a team access review.<br/><br/>Reason: {{ $.trigger.flag }}<br/>Details: {{ $.trigger.detail }}<br/><br/>Please review their access or revoke it in the open certification.",
+          "body": "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>Your report {{ $.getIdentity.attributes.displayName }} ({{ $.getIdentity.attributes.department }}, {{ $.getIdentity.attributes.jobTitle }}) was flagged in a team access review.<br/><br/>Reason: {{ $.trigger.input.flag }}<br/>Details: {{ $.trigger.input.detail }}<br/><br/>Please review their access or revoke it in the open certification.",
           "context": {},
-          "subject": "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.flag }})",
+          "subject": "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.input.flag }})",
           "recipientEmailList": [
             "shane.cotta+hackday@gmail.com"
           ]
