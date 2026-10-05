@@ -283,9 +283,11 @@ def common_access(members: list[dict[str, Any]], top: int = 10) -> list[dict[str
     for member in members:
         counts.update(_access_keys(member))
     threshold = max(2, (len(members) + 1) // 2)
+    # Sort explicitly: most_common() breaks ties by insertion order, which here
+    # comes from set iteration and so changes between runs.
     baseline = [
         {"access": key.split("|", 1)[1], "kind": key.split("|", 1)[0], "held_by": n}
-        for key, n in counts.most_common()
+        for key, n in sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
         if n >= threshold
     ]
     return baseline[:top]

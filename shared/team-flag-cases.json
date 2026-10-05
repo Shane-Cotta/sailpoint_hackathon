@@ -1,0 +1,1145 @@
+{
+  "_comment": "Regenerate shared/team-flag-cases.json from the Python reference implementation.",
+  "cases": [
+    {
+      "name": "accounting team: privileged access only one person has is high",
+      "documents": [
+        {
+          "id": "brandon",
+          "displayName": "Brandon.Mason",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-AccountingGeneral",
+              "type": "ENTITLEMENT",
+              "name": "AccountingGeneral",
+              "source": {
+                "name": "Active Directory"
+              },
+              "privileged": true
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-AccountsPayable",
+              "type": "ENTITLEMENT",
+              "name": "AccountsPayable",
+              "source": {
+                "name": "Active Directory"
+              },
+              "privileged": true
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-ENG_Prod",
+              "type": "ENTITLEMENT",
+              "name": "ENG_Prod",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "brandon-Active Directory",
+              "name": "Brandon.Mason",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 7
+        },
+        {
+          "id": "nicole",
+          "displayName": "Nicole.Morales",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-AccountsPayable",
+              "type": "ENTITLEMENT",
+              "name": "AccountsPayable",
+              "source": {
+                "name": "Active Directory"
+              },
+              "privileged": true
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-DataArchive",
+              "type": "ENTITLEMENT",
+              "name": "DataArchive",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "nicole-Active Directory",
+              "name": "Nicole.Morales",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 6
+        },
+        {
+          "id": "adam",
+          "displayName": "Adam.Kennedy",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Create_Reports",
+              "type": "ENTITLEMENT",
+              "name": "Create_Reports",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "adam-Active Directory",
+              "name": "Adam.Kennedy",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 5
+        },
+        {
+          "id": "bruce",
+          "displayName": "Bruce.Henry",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "bruce-Active Directory",
+              "name": "Bruce.Henry",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        }
+      ],
+      "expected_flags": [
+        {
+          "severity": "high",
+          "type": "privileged_access",
+          "identity": "Brandon.Mason",
+          "reason": "Holds 2 privileged item(s), 1 of which no one else on the team has.",
+          "items": [
+            "Active Directory: AccountingGeneral"
+          ]
+        },
+        {
+          "severity": "medium",
+          "type": "unique_access",
+          "identity": "Adam.Kennedy",
+          "reason": "Holds 1 item(s) no one else on the team has.",
+          "items": [
+            "PRISM: Create_Reports"
+          ]
+        },
+        {
+          "severity": "medium",
+          "type": "unique_access",
+          "identity": "Brandon.Mason",
+          "reason": "Holds 2 item(s) no one else on the team has.",
+          "items": [
+            "Active Directory: AccountingGeneral",
+            "Active Directory: ENG_Prod"
+          ]
+        },
+        {
+          "severity": "medium",
+          "type": "privileged_access",
+          "identity": "Nicole.Morales",
+          "reason": "Holds 1 privileged item(s).",
+          "items": [
+            "Active Directory: AccountsPayable"
+          ]
+        },
+        {
+          "severity": "medium",
+          "type": "unique_access",
+          "identity": "Nicole.Morales",
+          "reason": "Holds 1 item(s) no one else on the team has.",
+          "items": [
+            "Active Directory: DataArchive"
+          ]
+        }
+      ],
+      "expected_baseline": [
+        {
+          "access": "Employee Base Account - AD",
+          "kind": "access_profiles",
+          "held_by": 4
+        },
+        {
+          "access": "Active Directory: All_Users",
+          "kind": "entitlements",
+          "held_by": 4
+        },
+        {
+          "access": "Active Directory: campusAccess",
+          "kind": "entitlements",
+          "held_by": 4
+        },
+        {
+          "access": "PRISM: Internal_Employee",
+          "kind": "entitlements",
+          "held_by": 4
+        },
+        {
+          "access": "Active Directory: AccountsPayable",
+          "kind": "entitlements",
+          "held_by": 2
+        }
+      ]
+    },
+    {
+      "name": "leaver who still holds access is high, inactive with nothing is quiet",
+      "documents": [
+        {
+          "id": "ann",
+          "displayName": "Ann",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "ann-Active Directory",
+              "name": "Ann",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "lifecycleState": "active",
+          "accessCount": 4
+        },
+        {
+          "id": "bob",
+          "displayName": "Bob",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "bob-Active Directory",
+              "name": "Bob",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "lifecycleState": "terminated",
+          "accessCount": 2
+        },
+        {
+          "id": "cy",
+          "displayName": "Cy",
+          "access": [],
+          "accounts": [],
+          "inactive": true,
+          "accessCount": 0
+        }
+      ],
+      "expected_flags": [
+        {
+          "severity": "high",
+          "type": "leaver_risk",
+          "identity": "Bob",
+          "reason": "Lifecycle state is terminated but still holds 2 access item(s) and 1 account(s)."
+        },
+        {
+          "severity": "medium",
+          "type": "unique_access",
+          "identity": "Ann",
+          "reason": "Holds 2 item(s) no one else on the team has.",
+          "items": [
+            "Active Directory: campusAccess",
+            "PRISM: Internal_Employee"
+          ]
+        }
+      ],
+      "expected_baseline": [
+        {
+          "access": "Employee Base Account - AD",
+          "kind": "access_profiles",
+          "held_by": 2
+        },
+        {
+          "access": "Active Directory: All_Users",
+          "kind": "entitlements",
+          "held_by": 2
+        }
+      ]
+    },
+    {
+      "name": "no_roles only in a team that normally uses roles",
+      "documents": [
+        {
+          "id": "p1",
+          "displayName": "P1",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ROLE-None-Accounting Analyst",
+              "type": "ROLE",
+              "name": "Accounting Analyst"
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p1-Active Directory",
+              "name": "P1",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 5
+        },
+        {
+          "id": "p2",
+          "displayName": "P2",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ROLE-None-Accounting Analyst",
+              "type": "ROLE",
+              "name": "Accounting Analyst"
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p2-Active Directory",
+              "name": "P2",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 5
+        },
+        {
+          "id": "p3",
+          "displayName": "P3",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p3-Active Directory",
+              "name": "P3",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        }
+      ],
+      "expected_flags": [
+        {
+          "severity": "low",
+          "type": "no_roles",
+          "identity": "P3",
+          "reason": "Has 3 entitlement(s) but no role, unlike most of the team -- access was granted piecemeal."
+        }
+      ],
+      "expected_baseline": [
+        {
+          "access": "Employee Base Account - AD",
+          "kind": "access_profiles",
+          "held_by": 3
+        },
+        {
+          "access": "Active Directory: All_Users",
+          "kind": "entitlements",
+          "held_by": 3
+        },
+        {
+          "access": "Active Directory: campusAccess",
+          "kind": "entitlements",
+          "held_by": 3
+        },
+        {
+          "access": "PRISM: Internal_Employee",
+          "kind": "entitlements",
+          "held_by": 3
+        },
+        {
+          "access": "Accounting Analyst",
+          "kind": "roles",
+          "held_by": 2
+        }
+      ]
+    },
+    {
+      "name": "not fully onboarded, and an access outlier",
+      "documents": [
+        {
+          "id": "p0",
+          "displayName": "Rep0",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p0-Active Directory",
+              "name": "Rep0",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        },
+        {
+          "id": "p1",
+          "displayName": "Rep1",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p1-Active Directory",
+              "name": "Rep1",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        },
+        {
+          "id": "p2",
+          "displayName": "Rep2",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p2-Active Directory",
+              "name": "Rep2",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        },
+        {
+          "id": "p3",
+          "displayName": "Rep3",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p3-Active Directory",
+              "name": "Rep3",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        },
+        {
+          "id": "p4",
+          "displayName": "Rep4",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "p4-Active Directory",
+              "name": "Rep4",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        },
+        {
+          "id": "april",
+          "displayName": "April.Rios",
+          "access": [],
+          "accounts": [
+            {
+              "id": "april-HR",
+              "name": "April.Rios",
+              "source": {
+                "name": "HR"
+              }
+            }
+          ],
+          "accessCount": 0
+        },
+        {
+          "id": "max",
+          "displayName": "Max.Access",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Extra0",
+              "type": "ENTITLEMENT",
+              "name": "Extra0",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Extra1",
+              "type": "ENTITLEMENT",
+              "name": "Extra1",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Extra2",
+              "type": "ENTITLEMENT",
+              "name": "Extra2",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Extra3",
+              "type": "ENTITLEMENT",
+              "name": "Extra3",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Extra4",
+              "type": "ENTITLEMENT",
+              "name": "Extra4",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Extra5",
+              "type": "ENTITLEMENT",
+              "name": "Extra5",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "max-Active Directory",
+              "name": "Max.Access",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 10
+        }
+      ],
+      "expected_flags": [
+        {
+          "severity": "medium",
+          "type": "unique_access",
+          "identity": "Max.Access",
+          "reason": "Holds 6 item(s) no one else on the team has.",
+          "items": [
+            "Active Directory: Extra0",
+            "Active Directory: Extra1",
+            "Active Directory: Extra2",
+            "Active Directory: Extra3",
+            "Active Directory: Extra4"
+          ]
+        },
+        {
+          "severity": "medium",
+          "type": "access_outlier",
+          "identity": "Max.Access",
+          "reason": "Has 10 access items vs a team median of 4."
+        },
+        {
+          "severity": "low",
+          "type": "missing_baseline",
+          "identity": "April.Rios",
+          "reason": "Lacks 4 of the 4 items nearly everyone else on the team has -- possibly not fully onboarded.",
+          "items": [
+            "Active Directory: All_Users",
+            "Active Directory: campusAccess",
+            "Employee Base Account - AD",
+            "PRISM: Internal_Employee"
+          ]
+        }
+      ],
+      "expected_baseline": [
+        {
+          "access": "Employee Base Account - AD",
+          "kind": "access_profiles",
+          "held_by": 6
+        },
+        {
+          "access": "Active Directory: All_Users",
+          "kind": "entitlements",
+          "held_by": 6
+        },
+        {
+          "access": "Active Directory: campusAccess",
+          "kind": "entitlements",
+          "held_by": 6
+        },
+        {
+          "access": "PRISM: Internal_Employee",
+          "kind": "entitlements",
+          "held_by": 6
+        }
+      ]
+    },
+    {
+      "name": "two-person team: no peer comparison",
+      "documents": [
+        {
+          "id": "a",
+          "displayName": "A",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-Source Code",
+              "type": "ENTITLEMENT",
+              "name": "Source Code",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "a-Active Directory",
+              "name": "A",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 5
+        },
+        {
+          "id": "b",
+          "displayName": "B",
+          "access": [
+            {
+              "id": "ACCESS_PROFILE-None-Employee Base Account - AD",
+              "type": "ACCESS_PROFILE",
+              "name": "Employee Base Account - AD"
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-All_Users",
+              "type": "ENTITLEMENT",
+              "name": "All_Users",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-Active Directory-campusAccess",
+              "type": "ENTITLEMENT",
+              "name": "campusAccess",
+              "source": {
+                "name": "Active Directory"
+              }
+            },
+            {
+              "id": "ENTITLEMENT-PRISM-Internal_Employee",
+              "type": "ENTITLEMENT",
+              "name": "Internal_Employee",
+              "source": {
+                "name": "PRISM"
+              }
+            }
+          ],
+          "accounts": [
+            {
+              "id": "b-Active Directory",
+              "name": "B",
+              "source": {
+                "name": "Active Directory"
+              }
+            }
+          ],
+          "accessCount": 4
+        }
+      ],
+      "expected_flags": [],
+      "expected_baseline": [
+        {
+          "access": "Employee Base Account - AD",
+          "kind": "access_profiles",
+          "held_by": 2
+        },
+        {
+          "access": "Active Directory: All_Users",
+          "kind": "entitlements",
+          "held_by": 2
+        },
+        {
+          "access": "Active Directory: campusAccess",
+          "kind": "entitlements",
+          "held_by": 2
+        },
+        {
+          "access": "PRISM: Internal_Employee",
+          "kind": "entitlements",
+          "held_by": 2
+        }
+      ]
+    },
+    {
+      "name": "empty team",
+      "documents": [],
+      "expected_flags": [],
+      "expected_baseline": []
+    }
+  ]
+}
