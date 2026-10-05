@@ -25,15 +25,15 @@
                   "type": "anyComponentStyle"
                 }
               ],
-              "outputHashing": "all",
               "optimization": {
-                  "scripts": true,
-                  "styles": {
-                      "minify": true,
-                      "inlineCritical": false
-                  },
-                  "fonts": true
-              }
+                "fonts": true,
+                "scripts": true,
+                "styles": {
+                  "inlineCritical": false,
+                  "minify": true
+                }
+              },
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production",
@@ -66,7 +66,10 @@
           },
           "defaultConfiguration": "development",
           "options": {
-            "headers": {}
+            "headers": {
+              "Content-Security-Policy": "default-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; font-src 'self'; connect-src 'self' https://devrel-ga-25044.api.identitynow-demo.com",
+              "Permissions-Policy": "accelerometer=(), ambient-light-sensor=(), aria-notify=(), autoplay=(), bluetooth=(), camera=(), captured-surface-control=(), clipboard-read=(), clipboard-write=(), compute-pressure=(), cross-origin-isolated=(), deferred-fetch=(), deferred-fetch-minimal=(), display-capture=(), encrypted-media=(), fullscreen=(), gamepad=(), geolocation=(), gyroscope=(), hid=(), identity-credentials-get=(), idle-detection=(), language-detector=(), local-fonts=(), local-network=(), local-network-access=(), loopback-network=(), magnetometer=(), microphone=(), midi=(), on-device-speech-recognition=(), otp-credentials=(), payment=(), picture-in-picture=(), private-state-token-issuance=(), private-state-token-redemption=(), publickey-credentials-create=(), publickey-credentials-get=(), screen-wake-lock=(), serial=(), speaker-selection=(), storage-access=(), summarizer=(), translator=(), usb=(), web-share=(), window-management=(), xr-spatial-tracking=()"
+            }
           }
         },
         "test": {
