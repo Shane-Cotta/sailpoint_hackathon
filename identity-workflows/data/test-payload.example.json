@@ -1,0 +1,11 @@
+{
+  "_comment": "idn:identity-created test payload, same shape as the real event in the guide. Replace identity.id with a real identity id (e.g. Margaret Hamilton's, from Admin > Identities or `python3 scripts/isc.py find-identity margaret.hamilton`). Delete this _comment key before pasting into Test Workflow.",
+  "identity": {
+    "id": "REPLACE_WITH_IDENTITY_ID",
+    "name": "margaret.hamilton",
+    "type": "IDENTITY"
+  },
+  "attributes": {
+    "displayName": "margaret.hamilton"
+  }
+}
