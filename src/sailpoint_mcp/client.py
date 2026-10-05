@@ -21,6 +21,8 @@ import io
 import logging
 import threading
 import time
+import urllib.parse
+import urllib.request
 from typing import Callable, TypeVar
 
 from sailpoint import ApiClient
@@ -46,11 +48,25 @@ class SailPointAuthError(RuntimeError):
     """Raised when the tenant will not issue an access token."""
 
 
+def proxy_for(url: str) -> str | None:
+    """The proxy the environment says to use for `url`, honouring NO_PROXY.
+
+    The SDK talks to urllib3 directly, which ignores HTTPS_PROXY, so behind a
+    corporate proxy every call fails with a DNS error unless we pass it on.
+    """
+    host = urllib.parse.urlsplit(url).hostname or ""
+    if not host or urllib.request.proxy_bypass(host):
+        return None
+    proxies = urllib.request.getproxies()
+    return proxies.get(urllib.parse.urlsplit(url).scheme) or proxies.get("all")
+
+
 def _build_client(settings: SailPointSettings) -> ApiClient:
     params = ConfigurationParams()
     params.base_url = settings.base_url
     params.client_id = settings.client_id
     params.client_secret = settings.client_secret
+    params.proxy = proxy_for(settings.base_url)
 
     # Constructing Configuration performs the token request. When that fails the
     # SDK prints the reason to stdout and leaves access_token as None, so every
