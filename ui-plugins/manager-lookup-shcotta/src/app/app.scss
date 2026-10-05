@@ -1,106 +1,76 @@
 :host {
   display: block;
-  min-height: 100vh;
-  background: var(--spds-surface-0);
+  box-sizing: border-box;
+  max-width: 64rem;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 4rem;
+  color: var(--spds-text-color);
 }
-
-.shell {
+/* One rhythm for every top-level block, so nothing needs its own margin. */
+.page {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  gap: 2rem;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Body - sidenav + content area
-// ─────────────────────────────────────────────────────────────────────────────
-
-.shell-body {
+.page__header {
   display: flex;
-  flex: 1;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem 1.5rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--spds-content-border-color);
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Sidenav - white background, flush left and top
-// ─────────────────────────────────────────────────────────────────────────────
-
-.shell-sidenav {
-  width: 15rem;
-  flex-shrink: 0;
-  background: var(--spds-surface-0);
-  border-right: 1px solid var(--spds-content-border-color, var(--spds-slate-200));
-  padding: 1rem 0.75rem;
-
-  &__list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--spds-navigation-list-gap, 2px);
-  }
-
-  &__link {
-    display: block;
-    padding: var(--spds-navigation-item-padding, 0.875rem 0.75rem);
-    color: var(--spds-navigation-item-color, var(--spds-text-color));
-    text-decoration: none;
-    font-size: 1rem;
-    font-weight: 600;
-    border-radius: var(--spds-navigation-item-border-radius, var(--spds-border-radius-md));
-    transition:
-      background-color var(--spds-transition-duration, 0.2s) ease,
-      color var(--spds-transition-duration, 0.2s) ease;
-
-    &:hover {
-      background: var(--spds-navigation-item-focus-background, var(--spds-surface-100));
-      color: var(--spds-navigation-item-focus-color, var(--spds-text-hover-color));
-    }
-
-    &--active,
-    &--active:hover {
-      background: var(--spds-highlight-background, var(--spds-primary-50));
-      color: var(--spds-highlight-color, var(--spds-primary-500));
-    }
-  }
+.page__title {
+  margin: 0;
 }
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Content area
-// ─────────────────────────────────────────────────────────────────────────────
-
-.shell-content {
-  flex: 1;
-  min-width: 0;
-  background: var(--spds-neutral-500);
+.page__subtitle {
+  margin: 0.35rem 0 0;
+  color: var(--spds-text-muted-color);
+}
+/* Keeps the tenant tag and the user name together when the header wraps. */
+.page__meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+.page__user {
+  color: var(--spds-text-muted-color);
+}
+/* Label, control, and hint stack, each on its own line. */
+.picker {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+.picker__label {
+  display: block;
+  font-weight: 600;
+}
+.picker__select {
+  width: 24rem;
+  max-width: 100%;
+}
+.picker__hint {
+  display: block;
+  color: var(--spds-text-muted-color);
+}
+/* Table bits */
+.table-caption {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+.cell-person {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+.cell-empty {
   padding: 1.5rem;
-  padding-left: 2rem;
-
-  &__header {
-    margin-bottom: 1rem;
-
-    h1 {
-      margin: 0 0 0.5rem;
-      font-weight: 600;
-    }
-  }
-
-  &__meta {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-  }
-
-  &__context {
-    color: var(--spds-zinc-500);
-    font-size: 0.875rem;
-  }
-
-  &__card {
-    background: var(--spds-surface-0);
-    border-radius: var(--spds-border-radius-lg);
-    box-shadow:
-      0 1px 3px 0 rgba(0, 0, 0, 0.1),
-      0 1px 2px -1px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-  }
+  text-align: center;
+  color: var(--spds-text-muted-color);
 }

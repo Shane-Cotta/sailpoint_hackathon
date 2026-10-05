@@ -1,77 +1,80 @@
 import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { provideRouter } from '@angular/router';
+import { provideHttpClient } from '@angular/common/http';
+import { provideHttpClientTesting } from '@angular/common/http/testing';
 import { App } from './app';
 import { SailpointPluginService } from '@core';
-import { activateTranslations, provideTranslateTesting } from './testing/i18n.testing';
+import type { Identity } from '@sailpoint/angular-sdk/identities';
 
-describe('App', () => {
+/** Minimal identity fixture: only the fields the page reads. */
+function identity(id: string, name: string, managerId?: string, managerName?: string): Identity {
+  return {
+    id,
+    name,
+    emailAddress: `${id}@acme.com`,
+    attributes: { department: 'Engineering', type: 'EMPLOYEE' },
+    managerRef: managerId ? { type: 'IDENTITY', id: managerId, name: managerName } : null,
+  } as unknown as Identity;
+}
+
+describe('App (manager lookup)', () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [App],
       providers: [
-        provideRouter([]),
-        provideTranslateTesting(),
-        // Stub the plugin service so the component does not build a real SDK or
-        // attempt an App Shell handshake during the test. The component only
-        // reads the `context` and `status` signals.
+        provideHttpClient(),
+        provideHttpClientTesting(),
+        // Stub the plugin service so no real SDK / App Shell handshake runs.
+        // apiReady() is false, so the component never calls the API in tests.
         {
           provide: SailpointPluginService,
           useValue: {
             context: signal({
               tenant: { org: 'acme' },
               user: { displayName: 'Test User', email: 'test@acme.com' },
-              page: { route: 'https://acme.identitysoon.com/ui/plugin/starter', subPath: '' },
+              page: { route: 'https://acme.identitysoon.com/ui/plugin/manager-lookup-shcotta', subPath: '' },
             }),
             status: signal('ready'),
             apiReady: () => false,
-            setRoute: () => Promise.resolve(),
           },
         },
       ],
     }).compileComponents();
-
-    activateTranslations();
   });
 
-  it('creates the app', () => {
-    const fixture = TestBed.createComponent(App);
-    expect(fixture.componentInstance).toBeTruthy();
-  });
-
-  it('renders the plugin title in content header', () => {
+  it('renders the header with tenant and user from the plugin context', () => {
     const fixture = TestBed.createComponent(App);
     fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    // The plugin name below is a sentinel: `sail ui-plugins init` rewrites it,
-    // together with the matching title signal in app.ts, to the chosen name.
-    expect(compiled.querySelector('.shell-content__header h1')?.textContent).toContain('Hello, manager-lookup-shcotta');
+    const el = fixture.nativeElement as HTMLElement;
+    expect(el.querySelector('.page__title')?.textContent).toContain('Manager Reports Search');
+    expect(el.querySelector('.page__meta')?.textContent).toContain('Test User');
   });
 
-  it('renders the handshake status badge', () => {
+  it('derives a de-duplicated, sorted manager list and the selected manager\'s reports', () => {
     const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    expect(compiled.querySelector('.shell-content__meta p-tag')).toBeTruthy();
+    const app = fixture.componentInstance;
+    app['identities'].set([
+      identity('m1', 'Zoe Manager'),
+      identity('m2', 'Adam Manager'),
+      identity('e1', 'Eve', 'm1', 'Zoe Manager'),
+      identity('e2', 'Bob', 'm1', 'Zoe Manager'),
+      identity('e3', 'Cat', 'm2', 'Adam Manager'),
+    ]);
+
+    expect(app['managers']().map((m) => m.name)).toEqual(['Adam Manager', 'Zoe Manager']);
+
+    app['onManagerChange']('m1');
+    expect(app['reports']().map((r) => r.name).sort()).toEqual(['Bob', 'Eve']);
+
+    app['onManagerChange'](null);
+    expect(app['reports']()).toEqual([]);
   });
 
-  it('renders tenant and user context', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const context = compiled.querySelector('.shell-content__context');
-    expect(context?.textContent).toContain('acme');
-    expect(context?.textContent).toContain('Test User');
-  });
-
-  it('renders sidebar navigation links', () => {
-    const fixture = TestBed.createComponent(App);
-    fixture.detectChanges();
-    const compiled = fixture.nativeElement as HTMLElement;
-    const links = compiled.querySelectorAll('.shell-sidenav__link');
-    expect(links.length).toBe(3);
-    expect(links[0].textContent).toContain('Overview');
-    expect(links[1].textContent).toContain('Workflows');
-    expect(links[2].textContent).toContain('API Examples');
+  it('builds initials and maps identity types to tag severities', () => {
+    const app = TestBed.createComponent(App).componentInstance;
+    expect(app['initials']('Jean Bartik')).toBe('JB');
+    expect(app['typeSeverity']('employee')).toBe('success');
+    expect(app['typeSeverity']('CONTRACTOR')).toBe('warn');
+    expect(app['typeSeverity']('-')).toBe('secondary');
   });
 });
