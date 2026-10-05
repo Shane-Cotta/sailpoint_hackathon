@@ -26,13 +26,14 @@ Analyst, is flagged **high** because he holds the privileged `AccountingGeneral`
 items, so she was never fully onboarded. Ask *"let Douglas know about Brandon"* and a SailPoint workflow
 emails him: *"Your report Brandon.Mason (Accounting, Accounts Payable Analyst) was flagged in a team access review…"*
 
-**Try it**
-```bash
-.venv/bin/python -m pytest -q                            # 45 tests, no tenant needed
-.venv/bin/python scripts/check_auth.py "Adam Kennedy"    # needs .env with a PAT
-claude mcp add sailpoint -- "$(pwd)/scripts/run-server.sh"   # works on macOS and Linux
-```
-Then ask: *"Review Douglas.Flores's team access and tell me what to look at first."*
+**Try it** (VS Code, opened at the workspace folder `sailpoint_hackathon/`)
+1. **Run and Debug (⇧⌘D)** → **1. Setup: install / update environment** → ▶ (once).
+2. ▶ **2. Test: unit tests** (45 tests, no tenant needed) and **3. Test: tenant connection**.
+3. ▶ **Demo 1–4**: review Douglas.Flores's team → Brandon's privileged access → pending reviews → email the manager (⚠️ sends an email).
+4. Or chat with it: ⇧⌘P → **MCP: List Servers** → `sailpoint` → **Start**, then ask *"Review Douglas.Flores's team access and tell me what to look at first."*
+
+Without VS Code: `scripts/run-server.sh` starts the server on macOS or Linux (for example `claude mcp add sailpoint -- /bin/sh "$(pwd)/scripts/run-server.sh"`),
+and `scripts/call_tool.py <tool> '<json>'` calls one tool directly.
 
 **Status:** all four tools work against the live demo tenant. A demo certification campaign gives Douglas.Flores an open review
 (`scripts/create_demo_campaign.py`). `notify_manager` needs the workflow's trigger credentials in `.env` (see `.env.example`). In the demo

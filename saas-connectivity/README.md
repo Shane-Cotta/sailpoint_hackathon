@@ -19,7 +19,11 @@ aggregated: **50 accounts and 8 entitlements**, with group names resolved and `a
   (`di3u013yjgxuh.cloudfront.net`) is blocked by the sandbox firewall, so we created and seeded the demo key
   through the API (`POST /v1/keys`, then `POST /v1/seed`).
 
-## Reproduce
+## Run it from VS Code
+Run and Debug (⇧⌘D) → ▶ **SaaS connector: unit tests**. The first run installs `node_modules` for your OS, then runs jest.
+Deploying and aggregating use the SailPoint CLI and are one-off steps; they're already done in the tenant (see Status).
+
+## Reproduce from a terminal
 ```bash
 cd saas-connectivity
 # 1. demo key (valid 7 days) -> .env (gitignored)

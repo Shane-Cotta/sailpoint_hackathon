@@ -8,7 +8,11 @@
 - Two more definitions that we validated offline but did **not** create in the tenant: `to-manager` (a stretch goal) and `flagged-report-to-manager` (the main-hack tie-in, see below).
 - `scripts/`: `build_workflow.py` builds the JSON from the guide's template, `validate_workflow.py` is an offline linter, and `isc.py` is a stdlib-only API client (create, update, test, history).
 
-**Reproduce**
+**Run it from VS Code:** Run and Debug (⇧⌘D) → ▶ **Identity Workflows: validate workflow files** (offline), or
+▶ **Identity Workflows: test onboarding email** (⚠️ sends the onboarding email to shane.cotta+hackday@gmail.com). The MCP side of this track
+(the manager email) is ▶ **Demo 4: email Douglas about Brandon**.
+
+**Reproduce from a terminal**
 ```bash
 cd identity-workflows            # needs .env with SAIL_BASE_URL / SAIL_CLIENT_ID / SAIL_CLIENT_SECRET
 python3 scripts/build_workflow.py --recipient you@yourmail.com

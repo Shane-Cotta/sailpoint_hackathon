@@ -13,14 +13,18 @@ built on SailPoint's official Angular starter, and it builds and passes its unit
 
 ## Run it
 
+**From VS Code:** Run and Debug (⇧⌘D) → **UI plugin: dev server** → ▶. The first run installs `node_modules` for your OS
+(the template needs npm 11.12+, which the entry provides), then serves https://localhost:4200.
+
+From a terminal instead:
 ```bash
 cd ui-plugins/manager-lookup-shcotta
 npx -y npm@11 install          # the template needs npm 11.12+
 npm test -- --watch=false      # unit tests
-npm run start:sandbox          # dev server on https://localhost:4200 (leave running)
+npm start                      # dev server on https://localhost:4200 (start:sandbox binds 0.0.0.0 inside the sandbox)
 ```
 
-To see it **inside ISC**, put the tenant PAT in `ui-plugins/.env` (copy `.env.example`), then run
+To see it **inside ISC**, the tenant PAT must be in `ui-plugins/.env` (it is already there; otherwise copy `.env.example`). With the dev server running, run
 these in a second terminal:
 
 ```bash
@@ -28,9 +32,9 @@ these in a second terminal:
 ../sail.sh ui-plugins link               # prints a ...?spPluginDev=... URL; open it in Chrome
 ```
 
-When the sandbox is involved, also publish the port on the host Mac with
-`sbx ports <sandbox-name> --publish 4200:4200`, and accept the self-signed certificate at
-https://localhost:4200 once.
+When you run the dev server on the Mac (the ▶ entry), nothing else is needed; just accept the self-signed certificate at
+https://localhost:4200 once. Only if it runs inside the sandbox do you also need to publish the port with
+`sbx ports <sandbox-name> --publish 4200:4200`.
 
 ## How it gets into the tenant
 
