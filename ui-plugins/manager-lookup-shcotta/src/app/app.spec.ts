@@ -108,4 +108,24 @@ describe('App (Team Access Radar)', () => {
     expect(app['progress']({ id: 'c', name: 'Q4', decisionsMade: 3, decisionsTotal: 12 })).toBe('3/12 decisions (25%)');
     expect(app['progress']({ id: 'c', name: 'Q4', decisionsMade: 0, decisionsTotal: 0 })).toBe('not started');
   });
+
+  it('emails the manager for a flag and shows the outcome', async () => {
+    const fixture = TestBed.createComponent(App);
+    const app = fixture.componentInstance;
+    const service = app['teamAccess'];
+    const notify = vi.spyOn(service, 'notifyManager').mockResolvedValue('Completed');
+    app['teamDocs'].set([{ id: 'b-id', displayName: 'Brandon', access: [] }]);
+    const flag = { severity: 'high' as const, type: 'leaver_risk' as const, identity: 'Brandon', reason: 'x' };
+
+    await app['notify'](flag);
+    expect(notify).toHaveBeenCalledWith('b-id', flag);
+    expect(app['notifyState']()[app['flagKey'](flag)]).toBe('sent');
+
+    notify.mockResolvedValue('Failed');
+    await app['notify'](flag);
+    expect(app['notifyState']()[app['flagKey'](flag)]).toContain('no email was sent');
+
+    await app['notify']({ ...flag, identity: 'Nobody' });
+    expect(app['notifyState']()['Nobody|leaver_risk']).toContain("Could not find Nobody's identity id");
+  });
 });

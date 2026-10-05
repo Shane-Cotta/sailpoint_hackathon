@@ -2,6 +2,7 @@ import { Component, computed, effect, inject, signal } from '@angular/core';
 import { SailpointPluginService } from '@core';
 import { Paginator } from '@sailpoint/angular-sdk';
 import { IdentitiesService, type Identity } from '@sailpoint/angular-sdk/identities';
+import { ButtonModule } from 'primeng/button';
 import { MessageModule } from 'primeng/message';
 import { TagModule } from 'primeng/tag';
 import { firstValueFrom } from 'rxjs';
@@ -36,7 +37,7 @@ const FLAG_LABELS: Record<FlagType, string> = {
 };
 @Component({
   selector: 'app-root',
-  imports: [AvatarModule, FormsModule, MessageModule, SelectModule, SkeletonModule, TableModule, TagModule],
+  imports: [AvatarModule, ButtonModule, FormsModule, MessageModule, SelectModule, SkeletonModule, TableModule, TagModule],
   providers: [IdentitiesService],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -98,6 +99,10 @@ export class App {
     }
     return byName;
   });
+  /** Notification state per flag (keyed by flagKey): sending, done, or an error. */
+  protected readonly notifyState = signal<Record<string, 'sending' | 'sent' | 'running' | string>>({});
+  /** Member ids by display name, to turn a flag back into an identity id. */
+  private readonly memberIds = computed(() => new Map(this.members().map((m) => [m.name, m.id])));
   private teamRequest = 0;
   private requested = false;
   constructor() {
@@ -136,6 +141,7 @@ export class App {
     const request = ++this.teamRequest;
     this.teamDocs.set([]);
     this.reviews.set([]);
+    this.notifyState.set({});
     this.teamError.set('');
     this.reviewsError.set('');
     if (!managerId || !this.plugin.apiReady()) {
@@ -160,6 +166,26 @@ export class App {
       this.reviewsError.set(this.formatApiError(reviews.reason));
     }
     this.teamLoading.set(false);
+  }
+  protected flagKey(flag: Flag): string {
+    return `${flag.identity}|${flag.type}`;
+  }
+  /** Email the flagged person's manager via the Radar workflow. */
+  protected async notify(flag: Flag): Promise<void> {
+    const key = this.flagKey(flag);
+    const identityId = this.memberIds().get(flag.identity);
+    const set = (value: string) => this.notifyState.update((state) => ({ ...state, [key]: value }));
+    if (!identityId) {
+      set(`Could not find ${flag.identity}'s identity id.`);
+      return;
+    }
+    set('sending');
+    try {
+      const status = await this.teamAccess.notifyManager(identityId, flag);
+      set(status === 'Completed' ? 'sent' : status === 'Running' ? 'running' : `The workflow ${status.toLowerCase()}; no email was sent.`);
+    } catch (err) {
+      set(this.formatApiError(err));
+    }
   }
   /** p-tag severity for a flag severity. */
   protected flagSeverity(severity: Severity): 'danger' | 'warn' | 'info' {

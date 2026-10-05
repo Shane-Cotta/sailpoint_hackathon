@@ -93,6 +93,22 @@
                 @for (item of flag.items; track item) { <p-tag severity="secondary" [value]="item" /> }
               </div>
             }
+            <div class="flag__actions">
+              @switch (notifyState()[flagKey(flag)]) {
+                @case ('sent') { <p-tag severity="success" value="Manager emailed" /> }
+                @case ('running') { <p-tag severity="info" value="Sent to workflow; email on its way" /> }
+                @case (undefined) {
+                  <p-button label="Email manager" size="small" [outlined]="true" (onClick)="notify(flag)" />
+                }
+                @case ('sending') {
+                  <p-button label="Emailing…" size="small" [outlined]="true" [loading]="true" [disabled]="true" />
+                }
+                @default {
+                  <p-message severity="error" size="small" [text]="notifyState()[flagKey(flag)]" />
+                  <p-button label="Retry" size="small" [text]="true" (onClick)="notify(flag)" />
+                }
+              }
+            </div>
           </div>
         } @empty {
           <p-message severity="success" text="Nothing stands out on this team." />
