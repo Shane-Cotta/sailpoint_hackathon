@@ -8,10 +8,14 @@ Offline, stdlib only. Reads guide-files/workflows-hack-day-template.json (the
       The track deliverable: template + "Send Email" step (+ End step).
       Recipient is a PLACEHOLDER until you pass --recipient you@yourmail.
 
+  workflow/identity-onboarding-manager-check.workflow.json
+      Stretch goal "survive a missing manager": a choice step skips Get Manager
+      when managerRef.id is empty and sends a "routing to HR" notice instead.
+
   workflow/identity-onboarding-to-manager.workflow.json
-      Stretch goal "send it to the manager instead of yourself": same steps,
-      recipient is the manager's email from Get Manager (fictional
-      @navigate.example addresses in this tenant, so nothing reaches a human).
+      Stretch goal "send it to the manager instead of yourself" (+ the same
+      manager check): recipient is the manager's email from Get Manager
+      (fictional @navigate.example addresses here, so nothing reaches a human).
 
 Usage:
   python3 scripts/build_workflow.py [--recipient you@example.com] [--name "Your Name"]
@@ -27,50 +31,75 @@ ROOT = os.path.dirname(HERE)
 TEMPLATE = os.path.join(ROOT, "guide-files", "workflows-hack-day-template.json")
 OUT_DIR = os.path.join(ROOT, "workflow")
 
-RECIPIENT_PLACEHOLDER = "REPLACE_WITH_YOUR_EMAIL@example.invalid"
+# RFC 2606 reserved domain: valid syntax (so the workflow saves and test-runs),
+# undeliverable (null MX), and obviously a placeholder. Replace with your inbox.
+RECIPIENT_PLACEHOLDER = "REPLACE_WITH_YOUR_EMAIL@example.com"
 
 # Internal step keys -> JSONPath roots: "Get Identity" -> $.getIdentity (Get New Hire),
 # "Get Identity 1" -> $.getIdentity1 (Get Manager). See NOTES.md.
 SUBJECT = "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF"
+# The Send Email body is rendered as HTML (CoLab exports use <br/>), so plain
+# newlines would collapse into one line. Each value needs its own {{ }}.
 BODY = (
-    "A new identity has been created in SHF.\n"
-    "\n"
-    "  Name:        {{ $.getIdentity.attributes.displayName }}\n"
-    "  Department:  {{ $.getIdentity.attributes.department }}\n"
-    "  Job title:   {{ $.getIdentity.attributes.jobTitle }}\n"
-    "  Reports to:  {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})\n"
+    "A new identity has been created in SHF.<br/><br/>"
+    "Name: {{ $.getIdentity.attributes.displayName }}<br/>"
+    "Department: {{ $.getIdentity.attributes.department }}<br/>"
+    "Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>"
+    "Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})"
+)
+NO_MANAGER_SUBJECT = "A new identity {{ $.getIdentity.attributes.displayName }} has no manager on record"
+NO_MANAGER_BODY = (
+    "A new identity has been created in SHF, but it has no manager on record, routing to HR.<br/><br/>"
+    "Name: {{ $.getIdentity.attributes.displayName }}<br/>"
+    "Department: {{ $.getIdentity.attributes.department }}<br/>"
+    "Job title: {{ $.getIdentity.attributes.jobTitle }}"
 )
 MANAGER_SUBJECT = "Your new report {{ $.getIdentity.attributes.displayName }} starts in SHF"
 MANAGER_BODY = (
-    "Hi {{ $.getIdentity1.attributes.displayName }},\n"
-    "\n"
-    "{{ $.getIdentity.attributes.displayName }} has just been created in SHF and reports to you.\n"
-    "\n"
-    "  Department:  {{ $.getIdentity.attributes.department }}\n"
-    "  Job title:   {{ $.getIdentity.attributes.jobTitle }}\n"
-    "\n"
-    "Please review the access they are given in their first week.\n"
+    "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>"
+    "{{ $.getIdentity.attributes.displayName }} has just been created in SHF and reports to you.<br/><br/>"
+    "Department: {{ $.getIdentity.attributes.department }}<br/>"
+    "Job title: {{ $.getIdentity.attributes.jobTitle }}<br/><br/>"
+    "Please review the access they are given in their first week."
 )
 
 
-def send_email_step(recipient_attr: dict, subject: str, body: str) -> dict:
+def send_email_step(recipient_attr: dict, subject: str, body: str,
+                    display="Send Onboarding Email", next_step="End Step - Success") -> dict:
     attrs = {"body": body, "context": {}, "subject": subject}
     attrs.update(recipient_attr)
     return {
         "actionId": "sp:send-email",
         "attributes": attrs,
-        "displayName": "Send Onboarding Email",
-        "nextStep": "End Step - Success",
+        "displayName": display,
+        "nextStep": next_step,
         "type": "action",
         "versionNumber": 2,
     }
 
 
-def build(template: dict, name: str, description: str, email_step: dict) -> dict:
+def build(template: dict, name: str, description: str, email_step: dict, no_manager_step=None) -> dict:
     steps = copy.deepcopy(template["definition"]["steps"])
     # Template chain: Wait -> Get Identity -> Get Identity 1 -> End Step - Success
     steps["Get Identity 1"]["nextStep"] = "Send Email"
     steps["Send Email"] = email_step
+    if no_manager_step is not None:
+        # Stretch goal "survive a missing manager": only look the manager up
+        # when Get New Hire returned a managerRef.id; otherwise take the
+        # no-manager branch instead of failing in Get Manager.
+        steps["Get Identity"]["nextStep"] = "Has Manager?"
+        steps["Has Manager?"] = {
+            "choiceList": [{
+                "comparator": "IsPresent",
+                "nextStep": "Get Identity 1",
+                "variableA.$": "$.getIdentity.managerRef.id",
+            }],
+            "defaultStep": no_manager_step[0],
+            "displayName": "Has Manager?",
+            "type": "choice",
+        }
+        steps[no_manager_step[0]] = no_manager_step[1]
+        steps.setdefault("End Step - No Manager", {"actionId": "sp:operator-success", "displayName": "", "type": "success"})
     return {
         "name": name,
         "description": description,
@@ -90,20 +119,32 @@ def main() -> int:
         template = json.load(f)
     os.makedirs(OUT_DIR, exist_ok=True)
 
+    to_me = {"recipientEmailList": [a.recipient]}
     main_wf = build(
         template,
         f"{a.name} Identity Onboarding",
         "Hack Day Track 01: on idn:identity-created, look up the new hire and their manager and email an onboarding notice.",
-        send_email_step({"recipientEmailList": [a.recipient]}, SUBJECT, BODY),
+        send_email_step(to_me, SUBJECT, BODY),
+    )
+    check_wf = build(
+        template,
+        f"{a.name} Identity Onboarding (manager check)",
+        "Hack Day Track 01 stretch: same as Identity Onboarding, but identities without a manager get a 'routing to HR' notice instead of a failed run.",
+        send_email_step(to_me, SUBJECT, BODY),
+        ("Send Email No Manager", send_email_step(to_me, NO_MANAGER_SUBJECT, NO_MANAGER_BODY,
+                                                  "Send No-Manager Email", "End Step - No Manager")),
     )
     mgr_wf = build(
         template,
         f"{a.name} Identity Onboarding (to manager)",
-        "Hack Day Track 01 stretch: same as Identity Onboarding but the notice goes to the new hire's manager.",
-        send_email_step({"recipientEmailList.$": "$.getIdentity1.emailAddress"}, MANAGER_SUBJECT, MANAGER_BODY),
+        "Hack Day Track 01 stretch: the onboarding notice goes to the new hire's manager; no manager means no email.",
+        send_email_step({"recipientEmailList.$": "$.getIdentity1.emailAddress"}, MANAGER_SUBJECT, MANAGER_BODY,
+                        "Email Manager"),
+        ("End Step - No Manager", {"actionId": "sp:operator-success", "displayName": "", "type": "success"}),
     )
     for fname, wf in (
         ("identity-onboarding.workflow.json", main_wf),
+        ("identity-onboarding-manager-check.workflow.json", check_wf),
         ("identity-onboarding-to-manager.workflow.json", mgr_wf),
     ):
         path = os.path.join(OUT_DIR, fname)

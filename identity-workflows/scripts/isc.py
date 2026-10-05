@@ -50,6 +50,9 @@ def load_env():
 
 BASE = None
 _TOKEN = None
+# Cloudflare in front of the tenant answers "error code: 1010" (HTTP 403) to the
+# default "Python-urllib/x.y" User-Agent, so send an explicit one.
+UA = "hackday-identity-workflows/1.0 (+python-urllib)"
 
 
 def token():
@@ -61,7 +64,7 @@ def token():
         "client_id": os.environ["SAIL_CLIENT_ID"],
         "client_secret": os.environ["SAIL_CLIENT_SECRET"],
     }).encode()
-    req = urllib.request.Request(f"{BASE}/oauth/token", data=data, method="POST")
+    req = urllib.request.Request(f"{BASE}/oauth/token", data=data, method="POST", headers={"User-Agent": UA})
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             _TOKEN = json.load(r)["access_token"]
@@ -72,7 +75,7 @@ def token():
 
 def call(method, path, body=None, ok=(200, 201, 202, 204)):
     data = json.dumps(body).encode() if body is not None else None
-    req = urllib.request.Request(f"{BASE}{path}", data=data, method=method)
+    req = urllib.request.Request(f"{BASE}{path}", data=data, method=method, headers={"User-Agent": UA})
     req.add_header("Authorization", f"Bearer {token()}")
     req.add_header("Accept", "application/json")
     if data is not None:
@@ -231,7 +234,7 @@ def cmd_create(path):
         sys.exit(f"a workflow named {wf['name']!r} already exists; use update")
     for r in wf["definition"]["steps"].get("Send Email", {}).get("attributes", {}).get("recipientEmailList", []) or []:
         if "REPLACE_WITH" in r:
-            sys.exit("recipient is still the placeholder; rebuild with --recipient")
+            print(f"note: recipient is the placeholder {r} (undeliverable); set your inbox before step 5", file=sys.stderr)
     body = dict(wf, enabled=False)
     if "owner" not in body:
         c = jwt_claims()

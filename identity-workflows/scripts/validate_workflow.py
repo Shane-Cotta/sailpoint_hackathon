@@ -17,7 +17,6 @@ import re
 import sys
 
 VAR_RE = re.compile(r"\{\{\s*(\$\.[A-Za-z0-9_.\[\]]+)\s*\}\}")
-BARE_PATH_RE = re.compile(r"(?<!\{\{ )(?<!\{\{)\$\.(getIdentity|trigger)[A-Za-z0-9_.]*")
 
 
 def step_root(step_key: str) -> str:
@@ -92,6 +91,9 @@ def validate(wf: dict):
         s = steps[k]
         attrs = s.get("attributes") or {}
         refs = []
+        for c in s.get("choiceList", []):
+            if isinstance(c.get("variableA.$"), str):
+                refs.append(("choice.variableA", c["variableA.$"]))
         for ak, av in attrs.items():
             if ak == "resultSelector":
                 continue
@@ -120,7 +122,7 @@ def validate(wf: dict):
             rl = attrs.get("recipientEmailList")
             if rl is None and "recipientEmailList.$" not in attrs and "recipientId.$" not in attrs:
                 errors.append(f"{k}: send-email has no recipient")
-            if isinstance(rl, list) and any("REPLACE_WITH" in r or r.endswith(".invalid") for r in rl):
+            if isinstance(rl, list) and any("REPLACE_WITH" in r for r in rl):
                 warnings.append(f"{k}: recipient is still the placeholder {rl}; set your own address")
             for req in ("subject", "body"):
                 if not attrs.get(req):

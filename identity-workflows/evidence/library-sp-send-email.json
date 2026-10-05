@@ -1,0 +1,133 @@
+[
+  {
+    "deprecatedBy": "2099-01-01T00:00:00Z",
+    "exampleOutput": {},
+    "id": "sp:send-email",
+    "name": "Send Email",
+    "description": "Sends an email to the specified recipient.",
+    "type": "ACTION",
+    "formFields": [
+      {
+        "helpText": "The ID of the recipient of the email.",
+        "label": "Recipient ID",
+        "name": "recipientId",
+        "required": true,
+        "type": "text"
+      },
+      {
+        "helpText": "The reply-to email address.",
+        "label": "Reply-To Address",
+        "name": "replyTo",
+        "required": false,
+        "type": "email"
+      },
+      {
+        "helpText": "The email address to use as the sender address.",
+        "label": "From Address",
+        "name": "from",
+        "required": false,
+        "type": "email"
+      },
+      {
+        "helpText": "The subject line of the email.",
+        "label": "Subject",
+        "name": "subject",
+        "required": false,
+        "type": "text"
+      },
+      {
+        "helpText": "The body of the email.",
+        "label": "Body",
+        "name": "body",
+        "required": false,
+        "type": "textarea"
+      },
+      {
+        "helpText": "The map of template variables to render in the email.",
+        "label": "Templating Context",
+        "name": "context",
+        "required": false,
+        "type": "json"
+      }
+    ],
+    "versionNumber": 1,
+    "deprecated": true,
+    "isDynamicSchema": false,
+    "isSimulationEnabled": false
+  },
+  {
+    "deprecatedBy": "2099-01-01T00:00:00Z",
+    "exampleOutput": {},
+    "id": "sp:send-email",
+    "name": "Send Email",
+    "description": "Sends an email to the specified recipients.",
+    "type": "ACTION",
+    "formFields": [
+      {
+        "config": {
+          "max": 10
+        },
+        "label": "Recipient Email Addresses",
+        "name": "recipientEmailList",
+        "required": true,
+        "type": "emailPicker"
+      },
+      {
+        "label": "From",
+        "name": "from",
+        "required": false,
+        "type": "email"
+      },
+      {
+        "label": "Reply To Email Address",
+        "name": "replyTo",
+        "required": false,
+        "type": "email"
+      },
+      {
+        "label": "Subject",
+        "name": "subject",
+        "required": false,
+        "type": "text"
+      },
+      {
+        "helpText": "The body text of the email. This can be written in HTML or plain text.",
+        "label": "Body",
+        "name": "body",
+        "required": false,
+        "type": "htmlEditor"
+      },
+      {
+        "default": {},
+        "helpText": "The map of template variables to render in the email.",
+        "label": "Templating Context",
+        "name": "context",
+        "required": false,
+        "type": "json",
+        "valueOnly": true
+      },
+      {
+        "config": {
+          "max": 10
+        },
+        "label": "CC Email Addresses",
+        "name": "carbonCopy",
+        "required": false,
+        "type": "emailPicker"
+      },
+      {
+        "config": {
+          "max": 10
+        },
+        "label": "BCC Email Addresses",
+        "name": "blindCarbonCopy",
+        "required": false,
+        "type": "emailPicker"
+      }
+    ],
+    "versionNumber": 2,
+    "deprecated": false,
+    "isDynamicSchema": false,
+    "isSimulationEnabled": true
+  }
+]

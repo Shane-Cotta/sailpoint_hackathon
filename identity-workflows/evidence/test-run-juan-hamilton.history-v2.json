@@ -1,0 +1,374 @@
+{
+  "definition": {
+    "start": "Wait",
+    "steps": {
+      "End Step - Success": {
+        "actionId": "sp:operator-success",
+        "displayName": "",
+        "type": "success"
+      },
+      "Get Identity": {
+        "actionId": "sp:get-identity",
+        "attributes": {
+          "id.$": "$.trigger.identity.id",
+          "resultSelector": [
+            "$.getIdentity.attributes.department",
+            "$.getIdentity.attributes.jobTitle",
+            "$.getIdentity.attributes.email",
+            "$.getIdentity.attributes.displayName",
+            "$.getIdentity.attributes.uid",
+            "$.getIdentity.attributes.firstname",
+            "$.getIdentity.attributes.lastname",
+            "$.getIdentity.managerRef.id",
+            "$.getIdentity.managerRef.name",
+            "$.getIdentity.displayName",
+            "$.getIdentity.emailAddress"
+          ]
+        },
+        "displayName": "Get New Hire",
+        "nextStep": "Get Identity 1",
+        "type": "action",
+        "versionNumber": 2
+      },
+      "Get Identity 1": {
+        "actionId": "sp:get-identity",
+        "attributes": {
+          "id.$": "$.getIdentity.managerRef.id",
+          "resultSelector": [
+            "$.getIdentity1.attributes.displayName",
+            "$.getIdentity1.attributes.email",
+            "$.getIdentity1.displayName",
+            "$.getIdentity1.emailAddress"
+          ]
+        },
+        "displayName": "Get Manager",
+        "nextStep": "Send Email",
+        "type": "action",
+        "versionNumber": 2
+      },
+      "Send Email": {
+        "actionId": "sp:send-email",
+        "attributes": {
+          "body": "A new identity has been created in SHF.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})",
+          "context": {},
+          "recipientEmailList": [
+            "REPLACE_WITH_YOUR_EMAIL@example.com"
+          ],
+          "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF"
+        },
+        "displayName": "Send Onboarding Email",
+        "nextStep": "End Step - Success",
+        "type": "action",
+        "versionNumber": 2
+      },
+      "Wait": {
+        "actionId": "sp:sleep",
+        "attributes": {
+          "duration": "1m",
+          "type": "waitFor"
+        },
+        "displayName": "",
+        "nextStep": "Get Identity",
+        "type": "action",
+        "versionNumber": 1
+      }
+    }
+  },
+  "trigger": {
+    "type": "EVENT",
+    "attributes": {
+      "id": "idn:identity-created",
+      "integrationId": null
+    }
+  },
+  "history": [
+    {
+      "timestamp": "2026-10-05T14:57:27.372337308Z",
+      "attributes": {
+        "input": {
+          "attributes": {
+            "displayName": "Juan.Hamilton"
+          },
+          "identity": {
+            "id": "868b8cb008c14c4dbe7438aef4257bc8",
+            "name": "Juan.Hamilton",
+            "type": "IDENTITY"
+          }
+        }
+      },
+      "type": "WorkflowExecutionStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:57:27.442932952Z",
+      "attributes": {
+        "displayName": "Wait",
+        "input": {
+          "date": null,
+          "duration": "1m",
+          "time": null,
+          "type": "waitFor"
+        },
+        "stepName": "wait",
+        "task": "sp:sleep",
+        "technicalName": "Wait"
+      },
+      "type": "ActivityTaskScheduled"
+    },
+    {
+      "timestamp": "2026-10-05T14:57:27.443075524Z",
+      "attributes": {
+        "attempts": 1,
+        "displayName": "Wait",
+        "stepName": "wait",
+        "task": "sp:sleep",
+        "technicalName": "Wait"
+      },
+      "type": "ActivityTaskStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:57:27.462115038Z",
+      "attributes": {
+        "displayName": "Wait",
+        "result": {
+          "duration": "1m0s"
+        },
+        "stepName": "wait",
+        "task": "sp:sleep",
+        "technicalName": "Wait"
+      },
+      "type": "ActivityTaskCompleted"
+    },
+    {
+      "timestamp": "2026-10-05T14:57:27.495053117Z",
+      "attributes": {},
+      "type": "TimerStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.498238481Z",
+      "attributes": {},
+      "type": "TimerFired"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.535667457Z",
+      "attributes": {
+        "displayName": "Get New Hire",
+        "input": {
+          "id": "868b8cb008c14c4dbe7438aef4257bc8",
+          "method": "GET",
+          "path": "v3/identities/868b8cb008c14c4dbe7438aef4257bc8",
+          "resultSelector": [
+            "$.getIdentity.attributes.jobTitle",
+            "$.getIdentity.managerRef.id",
+            "$.getIdentity.id",
+            "$.getIdentity.attributes.displayName",
+            "$.getIdentity.attributes.department",
+            "$.getIdentity.attributes.email",
+            "$.getIdentity.attributes.uid",
+            "$.getIdentity.attributes.firstname",
+            "$.getIdentity.attributes.lastname",
+            "$.getIdentity.managerRef.name",
+            "$.getIdentity.displayName",
+            "$.getIdentity.emailAddress"
+          ],
+          "service": "mice"
+        },
+        "stepName": "getIdentity",
+        "task": "sp:get-identity",
+        "technicalName": "Get Identity"
+      },
+      "type": "ActivityTaskScheduled"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.535844941Z",
+      "attributes": {
+        "attempts": 1,
+        "displayName": "Get New Hire",
+        "stepName": "getIdentity",
+        "task": "sp:get-identity",
+        "technicalName": "Get Identity"
+      },
+      "type": "ActivityTaskStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.792948674Z",
+      "attributes": {
+        "displayName": "Get New Hire",
+        "result": {
+          "attributes": {
+            "department": "Engineering",
+            "displayName": "Juan.Hamilton",
+            "email": "Juan.Hamilton@sailpointdemo.com",
+            "firstname": "Juan",
+            "jobTitle": "Staging Developer II",
+            "lastname": "Hamilton",
+            "uid": "Juan.Hamilton"
+          },
+          "emailAddress": "Juan.Hamilton@sailpointdemo.com",
+          "id": "868b8cb008c14c4dbe7438aef4257bc8",
+          "managerRef": {
+            "id": "1bceb78e9f714b4ebf65369beb7b4c5b",
+            "name": "Patrick.Jenkins"
+          }
+        },
+        "stepName": "getIdentity",
+        "task": "sp:get-identity",
+        "technicalName": "Get Identity"
+      },
+      "type": "ActivityTaskCompleted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.826220702Z",
+      "attributes": {
+        "displayName": "Get Manager",
+        "input": {
+          "id": "1bceb78e9f714b4ebf65369beb7b4c5b",
+          "method": "GET",
+          "path": "v3/identities/1bceb78e9f714b4ebf65369beb7b4c5b",
+          "resultSelector": [
+            "$.getIdentity1.id",
+            "$.getIdentity1.attributes.displayName",
+            "$.getIdentity1.emailAddress",
+            "$.getIdentity1.attributes.email",
+            "$.getIdentity1.displayName"
+          ],
+          "service": "mice"
+        },
+        "stepName": "getIdentity1",
+        "task": "sp:get-identity",
+        "technicalName": "Get Identity 1"
+      },
+      "type": "ActivityTaskScheduled"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.82640626Z",
+      "attributes": {
+        "attempts": 1,
+        "displayName": "Get Manager",
+        "stepName": "getIdentity1",
+        "task": "sp:get-identity",
+        "technicalName": "Get Identity 1"
+      },
+      "type": "ActivityTaskStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.865846741Z",
+      "attributes": {
+        "displayName": "Get Manager",
+        "result": {
+          "attributes": {
+            "displayName": "Patrick.Jenkins",
+            "email": "Patrick.Jenkins@sailpointdemo.com"
+          },
+          "emailAddress": "Patrick.Jenkins@sailpointdemo.com",
+          "id": "1bceb78e9f714b4ebf65369beb7b4c5b"
+        },
+        "stepName": "getIdentity1",
+        "task": "sp:get-identity",
+        "technicalName": "Get Identity 1"
+      },
+      "type": "ActivityTaskCompleted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.896756364Z",
+      "attributes": {
+        "displayName": "Send Onboarding Email",
+        "input": {
+          "body": {
+            "blindCarbonCopy": null,
+            "carbonCopy": null,
+            "context": {},
+            "emailTemplate": {
+              "body": "A new identity has been created in SHF.<br/><br/>Name: Juan.Hamilton<br/>Department: Engineering<br/>Job title: Staging Developer II<br/>Reports to: Patrick.Jenkins (Patrick.Jenkins@sailpointdemo.com)",
+              "from": "",
+              "replyTo": "",
+              "subject": "A new identity Juan.Hamilton has been created in SHF"
+            },
+            "medium": "EMAIL",
+            "recipientEmailList": "REPLACE_WITH_YOUR_EMAIL@example.com"
+          },
+          "context": {},
+          "method": "POST",
+          "path": "notification/send-notification",
+          "recipientEmailList": [
+            "REPLACE_WITH_YOUR_EMAIL@example.com"
+          ],
+          "service": "hermes",
+          "subject": "A new identity Juan.Hamilton has been created in SHF",
+          "suppliedInlineExpression": {
+            "body": "A new identity has been created in SHF.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})",
+            "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF"
+          },
+          "useInternalClient": true
+        },
+        "stepName": "sendEmail",
+        "task": "sp:send-email",
+        "technicalName": "Send Email"
+      },
+      "type": "ActivityTaskScheduled"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:27.896876971Z",
+      "attributes": {
+        "attempts": 1,
+        "displayName": "Send Onboarding Email",
+        "stepName": "sendEmail",
+        "task": "sp:send-email",
+        "technicalName": "Send Email"
+      },
+      "type": "ActivityTaskStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:28.698925479Z",
+      "attributes": {
+        "displayName": "Send Onboarding Email",
+        "result": {},
+        "stepName": "sendEmail",
+        "task": "sp:send-email",
+        "technicalName": "Send Email"
+      },
+      "type": "ActivityTaskCompleted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:28.732157933Z",
+      "attributes": {
+        "displayName": "End Step - Success",
+        "input": {},
+        "stepName": "End Step - Success",
+        "task": "sp:internal:operator",
+        "technicalName": "End Step - Success"
+      },
+      "type": "ActivityTaskScheduled"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:28.732272665Z",
+      "attributes": {
+        "attempts": 1,
+        "displayName": "End Step - Success",
+        "stepName": "End Step - Success",
+        "task": "sp:internal:operator",
+        "technicalName": "End Step - Success"
+      },
+      "type": "ActivityTaskStarted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:28.753599996Z",
+      "attributes": {
+        "displayName": "End Step - Success",
+        "result": {},
+        "stepName": "End Step - Success",
+        "task": "sp:internal:operator",
+        "technicalName": "End Step - Success"
+      },
+      "type": "ActivityTaskCompleted"
+    },
+    {
+      "timestamp": "2026-10-05T14:58:28.784117137Z",
+      "attributes": {
+        "result": {
+          "c61df496-e6ee-4e1d-87ad-577ace90cbbb": "01a10c91-d94c-7521-9f84-4f2f06d7b12a"
+        }
+      },
+      "type": "WorkflowExecutionCompleted"
+    }
+  ]
+}

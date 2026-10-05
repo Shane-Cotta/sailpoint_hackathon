@@ -1,7 +1,11 @@
 {
-  "name": "Shane Cotta Identity Onboarding (to manager)",
-  "description": "Hack Day Track 01 stretch: the onboarding notice goes to the new hire's manager; no manager means no email.",
-  "enabled": false,
+  "created": "2026-10-05T14:57:21.717560749Z",
+  "modified": "2026-10-05T14:57:21.717560749Z",
+  "modifiedBy": {
+    "type": "IDENTITY",
+    "id": "aad245a6754549dd8976ca4bd9aac3e0",
+    "name": "hack.day"
+  },
   "definition": {
     "start": "Wait",
     "steps": {
@@ -29,7 +33,7 @@
           ]
         },
         "displayName": "Get New Hire",
-        "nextStep": "Has Manager?",
+        "nextStep": "Get Identity 1",
         "type": "action",
         "versionNumber": 2
       },
@@ -49,6 +53,21 @@
         "type": "action",
         "versionNumber": 2
       },
+      "Send Email": {
+        "actionId": "sp:send-email",
+        "attributes": {
+          "body": "A new identity has been created in SHF.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})",
+          "context": {},
+          "recipientEmailList": [
+            "REPLACE_WITH_YOUR_EMAIL@example.com"
+          ],
+          "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF"
+        },
+        "displayName": "Send Onboarding Email",
+        "nextStep": "End Step - Success",
+        "type": "action",
+        "versionNumber": 2
+      },
       "Wait": {
         "actionId": "sp:sleep",
         "attributes": {
@@ -59,38 +78,13 @@
         "nextStep": "Get Identity",
         "type": "action",
         "versionNumber": 1
-      },
-      "Send Email": {
-        "actionId": "sp:send-email",
-        "attributes": {
-          "body": "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>{{ $.getIdentity.attributes.displayName }} has just been created in SHF and reports to you.<br/><br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/><br/>Please review the access they are given in their first week.",
-          "context": {},
-          "subject": "Your new report {{ $.getIdentity.attributes.displayName }} starts in SHF",
-          "recipientEmailList.$": "$.getIdentity1.emailAddress"
-        },
-        "displayName": "Email Manager",
-        "nextStep": "End Step - Success",
-        "type": "action",
-        "versionNumber": 2
-      },
-      "Has Manager?": {
-        "choiceList": [
-          {
-            "comparator": "IsPresent",
-            "nextStep": "Get Identity 1",
-            "variableA.$": "$.getIdentity.managerRef.id"
-          }
-        ],
-        "defaultStep": "End Step - No Manager",
-        "displayName": "Has Manager?",
-        "type": "choice"
-      },
-      "End Step - No Manager": {
-        "actionId": "sp:operator-success",
-        "displayName": "",
-        "type": "success"
       }
     }
+  },
+  "owner": {
+    "type": "IDENTITY",
+    "id": "aad245a6754549dd8976ca4bd9aac3e0",
+    "name": "hack.day"
   },
   "trigger": {
     "type": "EVENT",
@@ -98,5 +92,16 @@
       "id": "idn:identity-created",
       "integrationId": null
     }
-  }
+  },
+  "creator": {
+    "type": "IDENTITY",
+    "id": "aad245a6754549dd8976ca4bd9aac3e0",
+    "name": "hack.day"
+  },
+  "id": "499d37f2-bbab-433d-b285-524b559c0338",
+  "name": "Shane Cotta Identity Onboarding",
+  "description": "Hack Day Track 01: on idn:identity-created, look up the new hire and their manager and email an onboarding notice.",
+  "executionCount": 0,
+  "failureCount": 0,
+  "enabled": false
 }

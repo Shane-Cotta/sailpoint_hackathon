@@ -63,11 +63,11 @@
       "Send Email": {
         "actionId": "sp:send-email",
         "attributes": {
-          "body": "A new identity has been created in SHF.\n\n  Name:        {{ $.getIdentity.attributes.displayName }}\n  Department:  {{ $.getIdentity.attributes.department }}\n  Job title:   {{ $.getIdentity.attributes.jobTitle }}\n  Reports to:  {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})\n",
+          "body": "A new identity has been created in SHF.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})",
           "context": {},
           "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF",
           "recipientEmailList": [
-            "REPLACE_WITH_YOUR_EMAIL@example.invalid"
+            "REPLACE_WITH_YOUR_EMAIL@example.com"
           ]
         },
         "displayName": "Send Onboarding Email",

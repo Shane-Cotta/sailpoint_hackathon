@@ -1,6 +1,6 @@
 {
-  "name": "Shane Cotta Identity Onboarding (to manager)",
-  "description": "Hack Day Track 01 stretch: the onboarding notice goes to the new hire's manager; no manager means no email.",
+  "name": "Shane Cotta Identity Onboarding (manager check)",
+  "description": "Hack Day Track 01 stretch: same as Identity Onboarding, but identities without a manager get a 'routing to HR' notice instead of a failed run.",
   "enabled": false,
   "definition": {
     "start": "Wait",
@@ -63,12 +63,14 @@
       "Send Email": {
         "actionId": "sp:send-email",
         "attributes": {
-          "body": "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>{{ $.getIdentity.attributes.displayName }} has just been created in SHF and reports to you.<br/><br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/><br/>Please review the access they are given in their first week.",
+          "body": "A new identity has been created in SHF.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}<br/>Reports to: {{ $.getIdentity1.attributes.displayName }} ({{ $.getIdentity1.emailAddress }})",
           "context": {},
-          "subject": "Your new report {{ $.getIdentity.attributes.displayName }} starts in SHF",
-          "recipientEmailList.$": "$.getIdentity1.emailAddress"
+          "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has been created in SHF",
+          "recipientEmailList": [
+            "REPLACE_WITH_YOUR_EMAIL@example.com"
+          ]
         },
-        "displayName": "Email Manager",
+        "displayName": "Send Onboarding Email",
         "nextStep": "End Step - Success",
         "type": "action",
         "versionNumber": 2
@@ -81,9 +83,24 @@
             "variableA.$": "$.getIdentity.managerRef.id"
           }
         ],
-        "defaultStep": "End Step - No Manager",
+        "defaultStep": "Send Email No Manager",
         "displayName": "Has Manager?",
         "type": "choice"
+      },
+      "Send Email No Manager": {
+        "actionId": "sp:send-email",
+        "attributes": {
+          "body": "A new identity has been created in SHF, but it has no manager on record, routing to HR.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}",
+          "context": {},
+          "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has no manager on record",
+          "recipientEmailList": [
+            "REPLACE_WITH_YOUR_EMAIL@example.com"
+          ]
+        },
+        "displayName": "Send No-Manager Email",
+        "nextStep": "End Step - No Manager",
+        "type": "action",
+        "versionNumber": 2
       },
       "End Step - No Manager": {
         "actionId": "sp:operator-success",
