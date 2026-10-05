@@ -4,7 +4,7 @@
 of cryptic entitlements and approve all of it. What they need is someone to say *"these three things on
 your team look wrong, and here's why."*
 
-**What we built.** Three new tools on SailPoint's MCP server template. Any AI assistant (Claude, Cursor,
+**What we built.** Four new tools on SailPoint's MCP server template. Any AI assistant (Claude, Cursor,
 ChatGPT desktop, ...) can use them to answer that question in plain language:
 
 | Tool | Answers |
@@ -12,6 +12,7 @@ ChatGPT desktop, ...) can use them to answer that question in plain language:
 | `review_team_access` | "Review my team's access." Lists the manager's direct reports, the access most of the team shares, and a ranked list of flags, each with a one-line reason. |
 | `get_identity_access` | "What exactly does Brandon have?" One person's roles, access profiles, entitlements, accounts and privileged items. |
 | `get_manager_pending_reviews` | "What's waiting on me?" Open certifications, active campaigns, and pending access requests for the team. |
+| `notify_manager` | "Let Douglas know about Brandon." Starts a SailPoint **workflow** that emails the manager the finding, then reports whether the email actually went out. It runs only when you ask. |
 
 **What gets flagged** (simple rules a manager can check for themselves):
 - 🔴 **Leaver risk**: inactive or terminated but still holding access.
@@ -22,18 +23,20 @@ ChatGPT desktop, ...) can use them to answer that question in plain language:
 **Live example** (demo tenant): *"Review Douglas.Flores's team."* Brandon Mason, an Accounts Payable
 Analyst, is flagged **high** because he holds the privileged `AccountingGeneral` entitlement that nobody else on the team has, plus
 `ENG_Prod`. In Martena Heath's 19-person call center, April Rios is flagged because she lacks all 8 baseline
-items, so she was never fully onboarded.
+items, so she was never fully onboarded. Ask *"let Douglas know about Brandon"* and a SailPoint workflow
+emails him: *"Your report Brandon.Mason (Accounting, Accounts Payable Analyst) was flagged in a team access review…"*
 
 **Try it**
 ```bash
-.venv/bin/python -m pytest -q                            # 39 tests, no tenant needed
+.venv/bin/python -m pytest -q                            # 45 tests, no tenant needed
 .venv/bin/python scripts/check_auth.py "Adam Kennedy"    # needs .env with a PAT
-claude mcp add sailpoint -- "$(pwd)/.venv/bin/python" -m sailpoint_mcp
+claude mcp add sailpoint -- "$(pwd)/scripts/run-server.sh"   # works on macOS and Linux
 ```
 Then ask: *"Review Douglas.Flores's team access and tell me what to look at first."*
 
-**Status:** all three tools work against the live demo tenant. That tenant has no certification campaigns or pending
-requests, so the pending-reviews tool runs fine but comes back empty there.
+**Status:** all four tools work against the live demo tenant. A demo certification campaign gives Douglas.Flores an open review
+(`scripts/create_demo_campaign.py`). `notify_manager` needs the workflow's trigger credentials in `.env` (see `.env.example`). In the demo
+tenant, emails go to a demo inbox, not to real managers.
 
 The original template documentation follows.
 

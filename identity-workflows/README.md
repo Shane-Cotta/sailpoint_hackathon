@@ -26,5 +26,11 @@ No CLI? Use the UI instead: Admin → Workflows → *Shane Cotta Identity Onboar
 
 **Main-hack tie-in (manager team access review)**
 Our MCP tools (`review_team_access`, `get_identity_access`, `get_manager_pending_reviews`) find problems. A workflow is a good way to *act* on them without code:
-- `workflow/flagged-report-to-manager.workflow.json` uses an **EXTERNAL trigger**, so the MCP server can POST `{identityId, flag, detail}` to it when a report is flagged (a leaver who still has access, access that is privileged or unusual compared with peers, or an overdue certification). The workflow looks up the report and the manager and emails the manager, using the same Get Identity → Get Manager → Send Email pattern as this track.
+- ✅ **Live:** `workflow/flagged-report-to-manager.workflow.json` is deployed as *Shane Cotta Flagged Report to Manager* (`5e7f8d19-…`, enabled, external trigger only) and called by the MCP server's **`notify_manager`** tool. The first live run delivered the email for Brandon.Mason → Douglas.Flores to the demo inbox. It uses an **EXTERNAL trigger**, so the MCP server POSTs `{identityId, flag, detail}` to it when a report is flagged (a leaver who still has access, access that is privileged or unusual compared with peers, or an overdue certification). The workflow looks up the report and the manager and emails the manager, using the same Get Identity → Get Manager → Send Email pattern as this track.
 - An event version could react on its own: `idn:identity-attributes-changed` filtered to lifecycle → inactive would mean "a leaver just appeared, tell their manager to review." The guide's later stretch goals (Manage Access, a Create Form approval) would turn the alert into a one-click revoke.
+
+**External-trigger gotchas** (found while wiring up `notify_manager`):
+- The POSTed body arrives under **`$.trigger.input`**, so the workflow reads `$.trigger.input.identityId`, not `$.trigger.identityId`.
+- The trigger's OAuth client can only be generated while the workflow is **disabled**, and the response calls the client id `id`.
+- A PUT that omits the trigger's server-managed attributes (`clientId`, `url`) **silently revokes the client**. `scripts/isc.py update` now keeps them.
+- The external-execute endpoint rejects PATs (401); it needs the workflow's own client.
