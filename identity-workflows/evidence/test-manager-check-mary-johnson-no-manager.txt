@@ -1,0 +1,310 @@
+test: HTTP 200 {"workflowExecutionId": "671984c1-8321-43cd-b6b7-2e7b8d7ca0d7"}
+  07:59:15 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Executing
+  07:59:25 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Executing
+  07:59:35 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Executing
+  07:59:46 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Executing
+  07:59:56 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Executing
+  08:00:06 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Executing
+  08:00:16 execution 671984c1-8321-43cd-b6b7-2e7b8d7ca0d7: Completed
+[
+  {
+    "timestamp": "2026-10-05T14:59:05.755203057Z",
+    "attributes": {
+      "input": {
+        "attributes": {
+          "displayName": "Mary.Johnson"
+        },
+        "identity": {
+          "id": "91df55b61c9f4b12b9413169c6c711c1",
+          "name": "Mary.Johnson",
+          "type": "IDENTITY"
+        }
+      }
+    },
+    "type": "WorkflowExecutionStarted"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.815999405Z",
+    "attributes": {
+      "displayName": "Wait",
+      "input": {
+        "date": null,
+        "duration": "1m",
+        "time": null,
+        "type": "waitFor"
+      },
+      "stepName": "wait",
+      "task": "sp:sleep",
+      "technicalName": "Wait"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.816132432Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Wait",
+      "stepName": "wait",
+      "task": "sp:sleep",
+      "technicalName": "Wait"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.837926272Z",
+    "attributes": {
+      "displayName": "Wait",
+      "result": {
+        "duration": "1m0s"
+      },
+      "stepName": "wait",
+      "task": "sp:sleep",
+      "technicalName": "Wait"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T14:59:05.870256781Z",
+    "attributes": {},
+    "type": "TimerStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:05.8731206Z",
+    "attributes": {},
+    "type": "TimerFired"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:05.91608275Z",
+    "attributes": {
+      "displayName": "Get New Hire",
+      "input": {
+        "id": "91df55b61c9f4b12b9413169c6c711c1",
+        "method": "GET",
+        "path": "v3/identities/91df55b61c9f4b12b9413169c6c711c1",
+        "resultSelector": [
+          "$.getIdentity.attributes.displayName",
+          "$.getIdentity.attributes.department",
+          "$.getIdentity.attributes.jobTitle",
+          "$.getIdentity.managerRef.id",
+          "$.getIdentity.id",
+          "$.getIdentity.attributes.email",
+          "$.getIdentity.attributes.uid",
+          "$.getIdentity.attributes.firstname",
+          "$.getIdentity.attributes.lastname",
+          "$.getIdentity.managerRef.name",
+          "$.getIdentity.displayName",
+          "$.getIdentity.emailAddress"
+        ],
+        "service": "mice"
+      },
+      "stepName": "getIdentity",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:05.916231021Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Get New Hire",
+      "stepName": "getIdentity",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.132369583Z",
+    "attributes": {
+      "displayName": "Get New Hire",
+      "result": {
+        "attributes": {
+          "department": "Regional Operations",
+          "displayName": "Mary.Johnson",
+          "email": "Mary.Johnson@sailpointdemo.com",
+          "firstname": "Mary",
+          "jobTitle": "Global Infrastructure Manager",
+          "lastname": "Johnson",
+          "uid": "Mary.Johnson"
+        },
+        "emailAddress": "Mary.Johnson@sailpointdemo.com",
+        "id": "91df55b61c9f4b12b9413169c6c711c1",
+        "managerRef": null
+      },
+      "stepName": "getIdentity",
+      "task": "sp:get-identity",
+      "technicalName": "Get Identity"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.168846904Z",
+    "attributes": {
+      "displayName": "Has Manager?",
+      "input": {
+        "Has Manager?": {
+          "ChoiceList": [
+            {
+              "Comparator": "IsPresent",
+              "NextStep": "Get Identity 1",
+              "VariableA.$": "$.getIdentity.managerRef.id"
+            }
+          ],
+          "DefaultStep": "Send Email No Manager",
+          "DisplayName": "Has Manager?",
+          "Name": "Has Manager?",
+          "SelectInput": "$",
+          "SelectOutput": "$",
+          "SelectResult": "$",
+          "Type": "choice"
+        },
+        "getIdentity": {
+          "attributes": {
+            "department": "Regional Operations",
+            "displayName": "Mary.Johnson",
+            "email": "Mary.Johnson@sailpointdemo.com",
+            "firstname": "Mary",
+            "jobTitle": "Global Infrastructure Manager",
+            "lastname": "Johnson",
+            "uid": "Mary.Johnson"
+          },
+          "emailAddress": "Mary.Johnson@sailpointdemo.com",
+          "id": "91df55b61c9f4b12b9413169c6c711c1",
+          "managerRef": null
+        }
+      },
+      "stepName": "Has Manager?",
+      "task": "sp:internal:operator",
+      "technicalName": "Has Manager?"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.168992739Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Has Manager?",
+      "stepName": "Has Manager?",
+      "task": "sp:internal:operator",
+      "technicalName": "Has Manager?"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.191271031Z",
+    "attributes": {
+      "displayName": "Has Manager?",
+      "result": {
+        "next": "Send Email No Manager",
+        "output": false
+      },
+      "stepName": "Has Manager?",
+      "task": "sp:internal:operator",
+      "technicalName": "Has Manager?"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.221923078Z",
+    "attributes": {
+      "displayName": "Send No-Manager Email",
+      "input": {
+        "body": {
+          "blindCarbonCopy": null,
+          "carbonCopy": null,
+          "context": {},
+          "emailTemplate": {
+            "body": "A new identity has been created in SHF, but it has no manager on record, routing to HR.<br/><br/>Name: Mary.Johnson<br/>Department: Regional Operations<br/>Job title: Global Infrastructure Manager",
+            "from": "",
+            "replyTo": "",
+            "subject": "A new identity Mary.Johnson has no manager on record"
+          },
+          "medium": "EMAIL",
+          "recipientEmailList": "REPLACE_WITH_YOUR_EMAIL@example.com"
+        },
+        "context": {},
+        "method": "POST",
+        "path": "notification/send-notification",
+        "recipientEmailList": [
+          "REPLACE_WITH_YOUR_EMAIL@example.com"
+        ],
+        "service": "hermes",
+        "subject": "A new identity Mary.Johnson has no manager on record",
+        "suppliedInlineExpression": {
+          "body": "A new identity has been created in SHF, but it has no manager on record, routing to HR.<br/><br/>Name: {{ $.getIdentity.attributes.displayName }}<br/>Department: {{ $.getIdentity.attributes.department }}<br/>Job title: {{ $.getIdentity.attributes.jobTitle }}",
+          "subject": "A new identity {{ $.getIdentity.attributes.displayName }} has no manager on record"
+        },
+        "useInternalClient": true
+      },
+      "stepName": "sendEmailNoManager",
+      "task": "sp:send-email",
+      "technicalName": "Send Email No Manager"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.222047703Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "Send No-Manager Email",
+      "stepName": "sendEmailNoManager",
+      "task": "sp:send-email",
+      "technicalName": "Send Email No Manager"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.714581317Z",
+    "attributes": {
+      "displayName": "Send No-Manager Email",
+      "result": {},
+      "stepName": "sendEmailNoManager",
+      "task": "sp:send-email",
+      "technicalName": "Send Email No Manager"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.762125369Z",
+    "attributes": {
+      "displayName": "End Step - No Manager",
+      "input": {},
+      "stepName": "End Step - No Manager",
+      "task": "sp:internal:operator",
+      "technicalName": "End Step - No Manager"
+    },
+    "type": "ActivityTaskScheduled"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.762253711Z",
+    "attributes": {
+      "attempts": 1,
+      "displayName": "End Step - No Manager",
+      "stepName": "End Step - No Manager",
+      "task": "sp:internal:operator",
+      "technicalName": "End Step - No Manager"
+    },
+    "type": "ActivityTaskStarted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.785332239Z",
+    "attributes": {
+      "displayName": "End Step - No Manager",
+      "result": {},
+      "stepName": "End Step - No Manager",
+      "task": "sp:internal:operator",
+      "technicalName": "End Step - No Manager"
+    },
+    "type": "ActivityTaskCompleted"
+  },
+  {
+    "timestamp": "2026-10-05T15:00:06.817434706Z",
+    "attributes": {
+      "result": {
+        "671984c1-8321-43cd-b6b7-2e7b8d7ca0d7": "01a10c93-599b-7315-b8c0-65abcb284bdb"
+      }
+    },
+    "type": "WorkflowExecutionCompleted"
+  }
+]

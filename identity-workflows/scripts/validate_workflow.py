@@ -49,8 +49,8 @@ def validate(wf: dict):
     if wf.get("enabled"):
         warnings.append("enabled=true: the create API rejects enabled workflows; create disabled, then enable")
     trig = wf.get("trigger") or {}
-    if trig.get("type") != "EVENT" or (trig.get("attributes") or {}).get("id") != "idn:identity-created":
-        warnings.append(f"trigger is not EVENT idn:identity-created: {trig}")
+    if trig.get("type") not in ("EVENT", "EXTERNAL", "SCHEDULED"):
+        errors.append(f"unknown trigger type: {trig}")
     if start not in steps:
         errors.append(f"start step {start!r} not in steps")
         return errors, warnings

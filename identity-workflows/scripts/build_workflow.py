@@ -17,6 +17,12 @@ Offline, stdlib only. Reads guide-files/workflows-hack-day-template.json (the
       manager check): recipient is the manager's email from Get Manager
       (fictional @navigate.example addresses here, so nothing reaches a human).
 
+  workflow/flagged-report-to-manager.workflow.json
+      Main-hack tie-in (design only, not created in the tenant): EXTERNAL trigger
+      the manager-team-access-review MCP tools could call when review_team_access
+      flags a report (leaver with access, privileged/outlier access, overdue
+      certification). Looks up the report and manager, emails the manager.
+
 Usage:
   python3 scripts/build_workflow.py [--recipient you@example.com] [--name "Your Name"]
 """
@@ -142,7 +148,59 @@ def main() -> int:
                         "Email Manager"),
         ("End Step - No Manager", {"actionId": "sp:operator-success", "displayName": "", "type": "success"}),
     )
+    flagged_wf = {
+        "name": f"{a.name} Flagged Report to Manager",
+        "description": "Main-hack tie-in: called by the team-access-review MCP server when a direct report is flagged; emails the report's manager.",
+        "enabled": False,
+        "definition": {
+            "start": "Get Identity",
+            "steps": {
+                "Get Identity": {
+                    "actionId": "sp:get-identity",
+                    "attributes": {"id.$": "$.trigger.identityId"},
+                    "displayName": "Get Flagged Report",
+                    "nextStep": "Has Manager?",
+                    "type": "action",
+                    "versionNumber": 2,
+                },
+                "Has Manager?": {
+                    "choiceList": [{"comparator": "IsPresent", "nextStep": "Get Identity 1",
+                                    "variableA.$": "$.getIdentity.managerRef.id"}],
+                    "defaultStep": "End Step - No Manager",
+                    "displayName": "Has Manager?",
+                    "type": "choice",
+                },
+                "Get Identity 1": {
+                    "actionId": "sp:get-identity",
+                    "attributes": {"id.$": "$.getIdentity.managerRef.id"},
+                    "displayName": "Get Manager",
+                    "nextStep": "Send Email",
+                    "type": "action",
+                    "versionNumber": 2,
+                },
+                "Send Email": send_email_step(
+                    # Swap for {"recipientEmailList.$": "$.getIdentity1.emailAddress"} to mail the real manager.
+                    {"recipientEmailList": [a.recipient]},
+                    "Access review: {{ $.getIdentity.attributes.displayName }} was flagged ({{ $.trigger.flag }})",
+                    "Hi {{ $.getIdentity1.attributes.displayName }},<br/><br/>"
+                    "Your report {{ $.getIdentity.attributes.displayName }} "
+                    "({{ $.getIdentity.attributes.department }}, {{ $.getIdentity.attributes.jobTitle }}) "
+                    "was flagged in a team access review.<br/><br/>"
+                    "Reason: {{ $.trigger.flag }}<br/>Details: {{ $.trigger.detail }}<br/><br/>"
+                    "Please review their access or revoke it in the open certification.",
+                    "Email Manager",
+                ),
+                "End Step - Success": {"actionId": "sp:operator-success", "displayName": "", "type": "success"},
+                "End Step - No Manager": {"actionId": "sp:operator-success", "displayName": "", "type": "success"},
+            },
+        },
+        "trigger": {"type": "EXTERNAL", "attributes": {
+            "name": "flagged-report-to-manager",
+            "description": "Input: {identityId, flag, detail}",
+        }},
+    }
     for fname, wf in (
+        ("flagged-report-to-manager.workflow.json", flagged_wf),
         ("identity-onboarding.workflow.json", main_wf),
         ("identity-onboarding-manager-check.workflow.json", check_wf),
         ("identity-onboarding-to-manager.workflow.json", mgr_wf),
