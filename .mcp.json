@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "sailpoint": {
+      "type": "stdio",
+      "command": "/Users/shcotta/Documents/CODE/sailpoint_hackathon/python-mcp-server-template/.venv/bin/python",
+      "args": [
+        "-m",
+        "sailpoint_mcp"
+      ],
+      "env": {}
+    }
+  }
+}
