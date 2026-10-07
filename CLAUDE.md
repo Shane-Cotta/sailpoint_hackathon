@@ -100,3 +100,28 @@ Rules for every track:
 - Tools: `search_identities` (template), `review_team_access`, `get_identity_access`, `get_manager_pending_reviews`, `notify_manager`
   (shared logic in `src/sailpoint_mcp/tools/_team.py`, pure and unit-tested in `tests/test_team.py`).
 - Inspector: `npx @modelcontextprotocol/inspector@latest --config mcp-inspector.json --server sailpoint`
+
+## Bulk Access Request (branch `bulk-access-request`, folder `bulk-access-request/`)
+- **What:** bulk access requests: many people × many Request Center items, ONE chosen approver, a ServiceNow INC number
+  (regex-validated). Two independent deployments: **A. Launcher** (native form in the Launchpad, any user) and **B. UI plugin**
+  (richer page, ORG_ADMIN only because it uses the workflow test endpoint). Shared Python core in `bulk-access-request/core/` (stdlib only).
+- **Config-driven and portable:** `config/<tenant>.json` (gitignored; example committed) sets the prefix, mode (dry-run/live), INC pattern,
+  catalog filter, people/item limits, approval timeout, email override and launcher access approval. The demo tenant config is
+  `config/devrel-ga-25044.json`: catalog limited to `UCSF*`, email to the demo inbox.
+- **Installed in the demo tenant (A, dry-run):** form `78785eac…`, workflow `ed17ba3a…`, launcher `5117feb1…`, access profile
+  "UCSF Bulk Access Request - Launcher Access" `e9463ed7…` (granted to hack.day). Test item: "UCSF Bulk Test Access" access profile
+  `de59a073…` (readonly group on our UCSF SaaS source). Test people: identities from the UCSF SaaS source; approver Aisha Bello `f64800fd…`.
+  **Only use those for tests.**
+- **Hard-won facts (all verified live):**
+  - Form REGEX validation is `{"validationType":"REGEX","config":{"regex":…,"message":…}}`, and a SELECT caps at 30 selections.
+  - STATIC select options can carry full `{id,type,name}` objects. INTERNAL selects ignore queries, and SEARCH selects return names, not IDs.
+  - Generic Approval: `approvalType SINGLE` + `singleApproverCategory IDENTITY` + `singleApproverIdentityId.$`.
+    A self-approval gets reassigned to a random admin, so block it. An admin can approve or reject on someone's behalf via `/v2025/generic-approvals/{id}/approve|reject`.
+  - `sp:create-approval-request` breaks on single-item lists (the engine unwraps them). Use `sp:access:manage` (max 10 recipients;
+    one loop per person; nested loops are not allowed). Steps inside a loop only see `$.loop.*`, so pass `context.$: "$"`.
+  - Failure end steps need top-level `failureName`/`description`.
+  - Launcher-triggered workflows must filter `$[?(@.workflowId == '<own id>')]`. A Launcher is only usable by holders of its
+    auto-created `assignedLaunchers` entitlement (on the IdentityNow source). Disabling the workflow disables the Launcher asynchronously.
+  - `/v3/requestable-objects` needs `types=` repeated (a comma list with ENTITLEMENT returns 400). There is no v3 identities API (use v2025).
+    UCSF SaaS identities don't appear in `/v3/search`.
+- **Docs:** `bulk-access-request/README.md`, `INSTALL.md` (any tenant), `USAGE.md`, `plugin/README.md`. The ▶ group is "5 bulk access".

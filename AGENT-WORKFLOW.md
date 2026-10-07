@@ -49,6 +49,7 @@ flowchart TB
 | **Orchestrator** | Main Claude Code session | `python-mcp-server-template/` (`main`) | Plan; 4 MCP tools with shared flag logic, including `notify_manager` → workflow; 45 tests; proxy fix for the SDK; demo campaign; cross-platform launcher; VS Code setup; all shared docs; audits of every branch | the whole session |
 | **UI Plugins** | Background `general-purpose` subagent | `ui-plugins/` → `ui-plugins/ui-plugins/` | Angular plugin "Manager Reports Search", 40 tests, `sail` CLI set up, plugin registered and linked in the tenant, judging rubric found, "Team Access Radar" idea | 66 tool calls · about 9 min |
 | **Identity Workflows** | Background `general-purpose` subagent | `identity-workflows/` → `identity-workflows/identity-workflows/` | Onboarding workflow created and test-run green, plus a missing-manager variant; a "flagged report → email the manager" workflow the MCP server could trigger; 3 guide errors found | 55 tool calls · about 11 min |
+| **Bulk Access plugin** | Background `general-purpose` subagent | `.worktrees/bulk-access-request-plugin/` → `bulk-access-request/plugin/` | Deployment B of Bulk Access Request: an Angular plugin (people, items, approver/INC, review; My bulk requests), its installer, screenshots | in progress |
 | **SaaS Connectivity** | Background `general-purpose` subagent | `saas-connectivity/` → `saas-connectivity/saas-connectivity/` | TypeScript connector, 13 tests, deployed with `sail conn`, source aggregated (50 accounts, 8 entitlements), guide bug fixed | 82 tool calls · about 12 min |
 
 ## How we kept parallel agents from colliding
@@ -88,3 +89,4 @@ flowchart TB
 | 15 | Team Access Radar uploaded to the tenant; **Email manager** button (through a disabled workflow copy started by the test endpoint, since browsers can't hold the trigger secret) |
 | 16 | At Shane's request, everything we created in the shared tenant renamed with a **UCSF** prefix: workflows, campaign (replaced, since active campaigns can't be renamed), source, connector, plugin |
 | 17 | Git root moved up to the whole workspace (docs, `.vscode`, code; history kept as 145 renames); `origin` now https://github.com/Shane-Cotta/sailpoint_hackathon.git |
+| 18 | **Bulk Access Request** started on branch `bulk-access-request` (worktree `.worktrees/bulk-access-request`). The orchestrator spiked the APIs live, then built the shared core and deployment A (Launcher), verified end to end. A background subagent builds deployment B (UI plugin) on sub-branch `bulk-access-request-plugin` |
