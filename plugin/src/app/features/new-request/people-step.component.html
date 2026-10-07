@@ -1,0 +1,111 @@
+<div class="step">
+  <p class="step__intro">
+    Choose everyone who needs the access. Each person gets every item you pick in the next step.
+  </p>
+
+  <div class="columns">
+    <section class="panel">
+      <label class="field__label" for="people-search">Search for people</label>
+      <input
+        id="people-search"
+        pInputText
+        type="search"
+        class="field__input"
+        autocomplete="off"
+        placeholder="Name, username or email"
+        [ngModel]="store.peopleQuery()"
+        (ngModelChange)="onQuery($event)"
+      />
+      <small class="field__hint">At least 2 characters.</small>
+
+      @if (searching()) {
+        <p class="muted">Searching…</p>
+      }
+      @if (store.peopleResults().length) {
+        <ul class="results" aria-label="Search results">
+          @for (p of store.peopleResults(); track p.id) {
+            <li class="result">
+              <div class="result__text">
+                <span class="result__name">{{ p.name }}</span>
+                <span class="result__meta">{{ p.email || '' }}{{ p.email && p.detail ? ' · ' : '' }}{{ p.detail || '' }}</span>
+              </div>
+              @if (isChosen(p)) {
+                <span class="result__added">✓ Added</span>
+              } @else {
+                <p-button label="Add" size="small" [outlined]="true" [disabled]="full" (onClick)="add(p)" />
+              }
+            </li>
+          }
+        </ul>
+      } @else if (store.peopleQuery().trim().length >= 2 && !searching()) {
+        <p class="muted">No one matches "{{ store.peopleQuery() }}".</p>
+      }
+    </section>
+
+    <section class="panel">
+      <label class="field__label" for="people-paste">Or paste a list</label>
+      <textarea
+        id="people-paste"
+        pTextarea
+        rows="6"
+        class="field__input"
+        placeholder="One per line: identity IDs, usernames or email addresses"
+        [ngModel]="store.pasteText()"
+        (ngModelChange)="store.pasteText.set($event)"
+      ></textarea>
+      <div class="actions actions--start">
+        <p-button
+          label="Find these people"
+          size="small"
+          [loading]="resolving()"
+          [disabled]="!store.pasteText().trim() || full"
+          (onClick)="resolvePaste()"
+        />
+      </div>
+
+      @if (store.resolution(); as r) {
+        @if (r.resolved.length) {
+          <p-message severity="success" size="small" [text]="'Added ' + r.resolved.length + ' ' + (r.resolved.length === 1 ? 'person' : 'people') + ' from the list.'" />
+        }
+        @if (r.unresolved.length) {
+          <p-message severity="warn" size="small">
+            <div>
+              <strong>Not found ({{ r.unresolved.length }}):</strong>
+              {{ r.unresolved.join(', ') }}. Check the spelling, or search for them instead.
+            </div>
+          </p-message>
+        }
+        @for (a of r.ambiguous; track a.token) {
+          <p-message severity="info" size="small">
+            <div>
+              <strong>"{{ a.token }}" matches {{ a.matches.length }} people.</strong> Pick one:
+              <div class="pick">
+                @for (m of a.matches; track m.id) {
+                  <p-button [label]="m.name + (m.detail ? ' (' + m.detail + ')' : '')" size="small" [text]="true" (onClick)="pickAmbiguous(a.token, m)" />
+                }
+              </div>
+            </div>
+          </p-message>
+        }
+      }
+    </section>
+  </div>
+
+  @if (error()) {
+    <p-message severity="error" [text]="error()" />
+  }
+
+  <section class="chosen" aria-label="Chosen people">
+    <div class="chosen__head">
+      <span class="field__label">Chosen people</span>
+      <span class="counter" [class.counter--full]="full">{{ store.people().length }} of {{ cfg().peopleMax }}</span>
+    </div>
+    <div class="chips">
+      @for (p of store.people(); track p.id) {
+        <p-chip [label]="p.name" [removable]="true" (onRemove)="store.removePerson(p.id)" />
+      } @empty {
+        <span class="muted">No one yet.</span>
+      }
+    </div>
+  </section>
+</div>
