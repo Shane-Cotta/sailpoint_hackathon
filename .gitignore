@@ -6,3 +6,5 @@
 **/.venv/
 **/.venv-mac/
 **/__pycache__/
+# Extra git worktrees for side branches (e.g. bulk-access-request); each is its own checkout.
+.worktrees/
