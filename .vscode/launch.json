@@ -192,6 +192,86 @@
       "command": "m=node_modules/.installed-$(uname -s); [ -f $m ] || { rm -rf node_modules && npm install && touch $m; } && npm test",
       "cwd": "${workspaceFolder}/python-mcp-server-template/saas-connectivity/saas-connectivity-demo",
       "presentation": { "group": "4 other tracks", "order": 4 }
+    },
+
+    // ---------------------------------------------- bulk access request (branch bulk-access-request)
+    // Uses the local, gitignored config/devrel-ga-25044.json (demo tenant; UCSF test identities only).
+    {
+      "name": "Bulk access: unit tests",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "module": "pytest",
+      "args": ["-q"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 1 }
+    },
+    {
+      "name": "Bulk access A: install (preview, changes nothing)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/bulk-access-request/launcher/install.py",
+      "args": ["--config", "config/devrel-ga-25044.json", "--dry-run"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 2 }
+    },
+    {
+      "name": "Bulk access A: install / update",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/bulk-access-request/launcher/install.py",
+      "args": ["--config", "config/devrel-ga-25044.json"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 3 }
+    },
+    {
+      "name": "Bulk access A: status",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/bulk-access-request/launcher/status.py",
+      "args": ["--config", "config/devrel-ga-25044.json"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 4 }
+    },
+    {
+      "name": "Bulk access A: end-to-end test (approve)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/bulk-access-request/launcher/e2e.py",
+      "args": ["--config", "config/devrel-ga-25044.json", "--people", "fa57e5fe3f92417f99a4c6bd89768756,358979d19ccd4d629634cd02c4f5289c", "--approver", "f64800fd98bc41789ddeaefa4ab61c24", "--scenario", "approve"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 5 }
+    },
+    {
+      "name": "Bulk access A: end-to-end test (deny)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/bulk-access-request/launcher/e2e.py",
+      "args": ["--config", "config/devrel-ga-25044.json", "--people", "fa57e5fe3f92417f99a4c6bd89768756", "--approver", "f64800fd98bc41789ddeaefa4ab61c24", "--scenario", "deny"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 6 }
+    },
+    {
+      "name": "Bulk access A: uninstall (preview)",
+      "type": "debugpy",
+      "request": "launch",
+      "python": "${workspaceFolder}/python-mcp-server-template/.venv-mac/bin/python",
+      "program": "${workspaceFolder}/bulk-access-request/launcher/uninstall.py",
+      "args": ["--config", "config/devrel-ga-25044.json"],
+      "cwd": "${workspaceFolder}/bulk-access-request",
+      "console": "integratedTerminal",
+      "presentation": { "group": "5 bulk access", "order": 7 }
     }
   ]
 }

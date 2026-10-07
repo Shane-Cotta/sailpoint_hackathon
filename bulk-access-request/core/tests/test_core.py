@@ -161,3 +161,36 @@ def test_another_tenant_gets_its_own_names():
     assert definitions.bulk_form(other, "o", [])["name"] == "ACME Bulk Access Request Form"
     assert definitions.bulk_workflow(other, variant="plugin", owner_id="o")["name"] == "ACME Bulk Access Request (Plugin)"
     assert definitions.bulk_launcher(other, "w")["name"] == "ACME Bulk Access Request"
+
+
+# ── lessons from the live tenant ──────────────────────────────────────────────
+def test_form_people_picker_is_capped_at_sailpoints_30_selection_limit():
+    cfg = cfg_with(people__max=100)
+    els = _form_elements(definitions.bulk_form(cfg, "o", []))
+    assert els["people"]["config"]["maximum"] == definitions.FORM_SELECT_MAX == 30
+
+
+def test_catalog_never_offers_the_profile_that_grants_the_tool_itself():
+    cfg = cfg_with(catalog__nameStartsWith="UCSF")
+    opts = rules.catalog_options(cfg, [
+        {"id": "1", "type": "ACCESS_PROFILE", "name": "UCSF Bulk Access Request - Launcher Access"},
+        {"id": "2", "type": "ACCESS_PROFILE", "name": "UCSF Bulk Test Access"},
+    ])
+    assert [o["label"] for o in opts] == ["UCSF Bulk Test Access"]
+
+
+def test_launcher_access_profile_wraps_the_assigned_launchers_entitlement():
+    ent = {"id": "e1", "name": "UCSF Bulk Access Request", "source": {"id": "s1", "name": "IdentityNow"}}
+    ap = definitions.launcher_access_profile(config.load(EXAMPLE), "o", ent)
+    assert ap["name"] == "UCSF Bulk Access Request - Launcher Access"
+    assert ap["requestable"] is True and ap["entitlements"] == [{"id": "e1", "type": "ENTITLEMENT", "name": "UCSF Bulk Access Request"}]
+    assert ap["source"]["id"] == "s1"
+    assert ap["accessRequestConfig"]["approvalSchemes"] == [{"approverType": "MANAGER"}]
+    no_approval = definitions.launcher_access_profile(cfg_with(launcher__accessApproval="NONE"), "o", ent)
+    assert no_approval["accessRequestConfig"]["approvalSchemes"] == []
+
+
+def test_failure_end_step_has_the_fields_the_validator_requires():
+    wf = definitions.bulk_workflow(config.load(EXAMPLE), variant="launcher", owner_id="o", form_id="f")
+    end = _steps(wf)["End Step - Rejected"]
+    assert end["type"] == "failure" and end["failureName"] and end["description"] and "attributes" not in end
