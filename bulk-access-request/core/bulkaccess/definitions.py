@@ -30,6 +30,9 @@ from .rules import APPROVAL_COMMENT_MAX, APPROVAL_DESCRIPTION_MAX
 
 VARIANTS = ("launcher", "plugin")
 
+# A form SELECT accepts at most 30 selections (hard UI limit in SailPoint forms).
+FORM_SELECT_MAX = 30
+
 # Form field keys (also the plugin's trigger input names).
 F_PEOPLE, F_ITEMS, F_APPROVER, F_INC, F_JUSTIFICATION = "people", "items", "approver", "inc", "justification"
 
@@ -44,8 +47,8 @@ def bulk_form(cfg: Config, owner_id: str, options: list[dict[str, Any]]) -> dict
     required = [{"validationType": "REQUIRED"}]
     elements = [
         {"id": "people", "key": F_PEOPLE, "elementType": "SELECT", "validations": required,
-         "config": {"label": "People who need the access", "maximum": cfg.people_max, "forceSelect": True,
-                    "helpText": f"Search and add up to {cfg.people_max} people.",
+         "config": {"label": "People who need the access", "maximum": min(cfg.people_max, FORM_SELECT_MAX), "forceSelect": True,
+                    "helpText": f"Search and add up to {min(cfg.people_max, FORM_SELECT_MAX)} people.",
                     "dataSource": {"dataSourceType": "INTERNAL", "config": {"objectType": "IDENTITY"}}}},
         {"id": "items", "key": F_ITEMS, "elementType": "SELECT", "validations": required,
          "config": {"label": "Access to request", "maximum": cfg.catalog_max_items, "forceSelect": True,
@@ -99,7 +102,10 @@ def _success() -> dict[str, Any]:
 
 
 def _failure() -> dict[str, Any]:
-    return {"actionId": "sp:operator-failure", "type": "failure", "displayName": ""}
+    # Failure end steps carry failureName/description at the top level (validator error e300 otherwise).
+    return {"actionId": "sp:operator-failure", "type": "failure", "displayName": "",
+            "failureName": "Bulk request rejected",
+            "description": "Stopped before approval: the approver was the requester, or the INC number was invalid."}
 
 
 def _email(cfg: Config, subject: str, body: str, *, cc_approver: bool) -> dict[str, Any]:
@@ -119,7 +125,6 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
     p = _paths(variant)
     inc, who, appr = _t(p["inc"]), _t("$.getRequester.attributes.displayName"), _t("$.getApprover.attributes.displayName")
     summary = f"INC {inc} · requested by {who} · approver {appr}"
-    item_comment = f"{inc} | Bulk access request by {who} | Approved by {appr} | {_t(p['justification'])}"
     live = cfg.live
     mode_note = "" if live else " (DRY RUN: nothing was requested)"
 
@@ -199,13 +204,20 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
     if live:
         # One loop over the people; each iteration requests every chosen item for one
         # person. (No nested loops in SailPoint workflows, and max 10 recipients per request.)
+        # Steps inside a loop only see $.loop.*, so the whole workflow state is passed in as
+        # the loop context and the items / comment parts are read from $.loop.context.
+        def in_loop(path: str) -> str:
+            return "$.loop.context" + path[1:]
+        loop_comment = (f"{_t(in_loop(p['inc']))} | Bulk access request by "
+                        f"{_t(in_loop('$.getRequester.attributes.displayName'))} | Approved by "
+                        f"{_t(in_loop('$.getApprover.attributes.displayName'))} | {_t(in_loop(p['justification']))}")
         steps["Request Access"] = {
             "actionId": "sp:loop:iterator", "type": "action", "versionNumber": 1, "displayName": "Request access per person",
-            "attributes": {"input.$": p["people"], "context.$": p["items"], "start": "Manage Access",
+            "attributes": {"input.$": p["people"], "context.$": "$", "start": "Manage Access",
                            "steps": {"Manage Access": {
                                "actionId": "sp:access:manage", "type": "action", "versionNumber": 1,
                                "attributes": {"requestType": "GRANT_ACCESS", "addIdentities.$": "$.loop.loopInput",
-                                              "requestedItems.$": "$.loop.context", "comments": item_comment},
+                                              "requestedItems.$": in_loop(p["items"]), "comments": loop_comment},
                                "nextStep": "End Step - Success Item"},
                                "End Step - Success Item": {"type": "success"}}},
             "nextStep": "Email Approved"}
@@ -254,6 +266,26 @@ def bulk_launcher(cfg: Config, workflow_id: str) -> dict[str, Any]:
         "disabled": False,
         "reference": {"type": "WORKFLOW", "id": workflow_id},
         "config": "{}",
+    }
+
+
+def launcher_access_profile(cfg: Config, owner_id: str, entitlement: dict[str, Any]) -> dict[str, Any]:
+    """Who may use the Launcher. SailPoint creates an `assignedLaunchers` entitlement on the
+    built-in IdentityNow source for every Launcher; only identities holding it see it in the
+    Launchpad. Wrapping it in a requestable access profile lets users ask for it in the
+    Request Center (or admins grant it) like any other access."""
+    source = entitlement.get("source") or {}
+    return {
+        "name": f"{cfg.base_name} - Launcher Access",
+        "description": f"Lets the holder use the '{cfg.launcher_name}' Launcher in the Launchpad "
+                       f"(bulk access requests with one approver and a ServiceNow INC number).",
+        "owner": _owner(owner_id),
+        "source": {"id": source.get("id"), "type": "SOURCE", "name": source.get("name")},
+        "entitlements": [{"id": entitlement["id"], "type": "ENTITLEMENT", "name": entitlement.get("name")}],
+        "enabled": True,
+        "requestable": True,
+        "accessRequestConfig": {"commentsRequired": False, "denialCommentsRequired": False,
+                                "approvalSchemes": [{"approverType": "MANAGER"}] if cfg.launcher_access_approval == "MANAGER" else []},
     }
 
 

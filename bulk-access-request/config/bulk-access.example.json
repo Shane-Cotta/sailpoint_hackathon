@@ -9,16 +9,33 @@
     "message": "Enter a ServiceNow incident number: INC followed by 7 digits, e.g. INC0012345."
   },
   "catalog": {
-    "types": ["ACCESS_PROFILE", "ROLE", "ENTITLEMENT"],
+    "types": [
+      "ACCESS_PROFILE",
+      "ROLE",
+      "ENTITLEMENT"
+    ],
     "nameStartsWith": null,
     "maxItems": 25
   },
-  "people": { "max": 50 },
-  "approval": { "timeoutDays": 7, "actionAtTimeout": "EXPIRED", "priority": "MEDIUM" },
+  "people": {
+    "max": 50
+  },
+  "approval": {
+    "timeoutDays": 7,
+    "actionAtTimeout": "EXPIRED",
+    "priority": "MEDIUM"
+  },
   "notifications": {
     "overrideRecipients": [],
     "ccApprover": true
   },
   "owner": null,
-  "plugin": { "alias": "ucsf-bulk-access", "displayName": "UCSF Bulk Access Request" }
+  "plugin": {
+    "alias": "ucsf-bulk-access",
+    "displayName": "UCSF Bulk Access Request"
+  },
+  "launcher": {
+    "accessApproval": "MANAGER",
+    "_comment": "Who approves requests for the Launcher Access profile: MANAGER (the requester's manager) or NONE (auto-approved)."
+  }
 }

@@ -109,10 +109,11 @@ def test_dry_run_never_requests_access_and_live_does():
     live = definitions.bulk_workflow(cfg_with(mode="live"), variant="launcher", owner_id="o", form_id="f")
     loop = _steps(live)["Request Access"]["attributes"]
     assert loop["input.$"] == "$.interactiveForm.formData.people"      # one iteration per person
-    assert loop["context.$"] == "$.interactiveForm.formData.items"     # all items per request
+    assert loop["context.$"] == "$"                                    # steps in a loop only see $.loop.*
     manage = loop["steps"]["Manage Access"]["attributes"]
-    assert manage["addIdentities.$"] == "$.loop.loopInput" and manage["requestedItems.$"] == "$.loop.context"
-    assert "{{$.interactiveForm.formData.inc}}" in manage["comments"]
+    assert manage["addIdentities.$"] == "$.loop.loopInput"
+    assert manage["requestedItems.$"] == "$.loop.context.interactiveForm.formData.items"   # all items per request
+    assert "{{$.loop.context.interactiveForm.formData.inc}}" in manage["comments"]
 
 
 def test_approval_goes_to_the_chosen_approver_and_branches_on_status():

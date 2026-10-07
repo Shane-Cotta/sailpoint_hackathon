@@ -128,7 +128,9 @@ class Tenant:
         """The identity the PAT belongs to (owner of everything we create)."""
         claims = json.loads(_b64url(self.token().split(".")[1]))
         identity_id = claims.get("identity_id")
-        return self.call("GET", f"/v3/identities/{identity_id}") if identity_id else {}
+        if not identity_id:
+            return {}
+        return self.call("GET", f"/v2025/identities/{identity_id}")   # there is no v3 identities API
 
     def find_by_name(self, list_path: str, name: str, *, key: str | None = None) -> dict[str, Any] | None:
         """First object at `list_path` whose name equals `name` (lists may be wrapped)."""

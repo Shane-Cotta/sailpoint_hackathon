@@ -44,6 +44,7 @@ class Config:
     owner_id: str | None
     plugin_alias: str
     plugin_display_name: str
+    launcher_access_approval: str = "MANAGER"
     env_file: str | None = None
     source_path: str | None = field(default=None, compare=False)
 
@@ -120,6 +121,10 @@ def from_dict(data: dict[str, Any], source_path: str | None = None) -> Config:
     recipients = tuple(notes.get("overrideRecipients") or ())
     _require(all("@" in r for r in recipients), "`notifications.overrideRecipients` must be email addresses.")
 
+    launcher = data.get("launcher") or {}
+    access_approval = launcher.get("accessApproval", "MANAGER")
+    _require(access_approval in ("MANAGER", "NONE"), "`launcher.accessApproval` must be \"MANAGER\" or \"NONE\".")
+
     alias = plugin.get("alias") or f"{prefix.lower()}-bulk-access"
     _require(re.fullmatch(r"[a-z0-9][a-z0-9-]{1,48}", alias) is not None,
              "`plugin.alias` must be lowercase letters, digits and dashes.")
@@ -142,6 +147,7 @@ def from_dict(data: dict[str, Any], source_path: str | None = None) -> Config:
         owner_id=data.get("owner") or None,
         plugin_alias=alias,
         plugin_display_name=plugin.get("displayName") or f"{prefix} Bulk Access Request",
+        launcher_access_approval=access_approval,
         env_file=data.get("envFile") or None,
         source_path=source_path,
     )

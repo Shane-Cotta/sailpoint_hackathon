@@ -56,7 +56,10 @@ def catalog_options(cfg: Config, requestable: Iterable[dict[str, Any]]) -> list[
     to rebuild objects from bare IDs.
     """
     options = []
+    own = f"{cfg.base_name} - Launcher Access"   # the profile that grants this tool; never offer it
     for obj in requestable:
+        if obj.get("name") == own:
+            continue
         kind = obj.get("type")
         name = obj.get("name") or obj.get("id")
         if kind not in cfg.catalog_types:
