@@ -194,3 +194,10 @@ def test_failure_end_step_has_the_fields_the_validator_requires():
     wf = definitions.bulk_workflow(config.load(EXAMPLE), variant="launcher", owner_id="o", form_id="f")
     end = _steps(wf)["End Step - Rejected"]
     assert end["type"] == "failure" and end["failureName"] and end["description"] and "attributes" not in end
+
+
+def test_launcher_form_has_no_length_rule_on_the_justification():
+    # A MAX_LENGTH validation on a form TEXTAREA silently stops submissions reaching the
+    # workflow (found live), so the form must not have one.
+    els = _form_elements(definitions.bulk_form(config.load(EXAMPLE), "o", []))
+    assert [v["validationType"] for v in els["justification"]["validations"]] == ["REQUIRED"]

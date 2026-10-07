@@ -1,7 +1,7 @@
 import { computed, inject, Injectable, OnDestroy, signal } from '@angular/core';
 import { SailpointPluginService } from '@core';
 
-import { BulkApiService, type ExistingAccess, type Person, type Resolution } from './bulk-api.service';
+import { assignedApproverNames, BulkApiService, type ExistingAccess, type Person, type Resolution } from './bulk-api.service';
 import { BulkConfigService } from './bulk-config.service';
 import { executionIdOf } from './my-requests';
 import { describeError } from './errors';
@@ -157,7 +157,7 @@ export class RequestStore implements OnDestroy {
     try {
       const [execution, approvals] = await Promise.all([this.api.execution(s.executionId), this.api.approvals()]);
       const approval = approvals.find((a) => executionIdOf(a) === s.executionId);
-      const approver = approval?.approvers?.[0]?.name ?? s.approver;
+      const approver = (approval && assignedApproverNames(approval)[0]) || s.approver;
       if (approval) this.patch({ approvalId: approval.id, approver });
 
       if (approval?.status === 'APPROVED' || approval?.status === 'REJECTED' || approval?.status === 'EXPIRED'

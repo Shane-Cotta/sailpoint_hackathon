@@ -5,15 +5,25 @@ Guides for requesters, approvers and admins. Screenshots live in [docs/screensho
 ## Requesters, with the Launcher (any user)
 1. **Get access to the tool, once.** In the **Request Center**, request **"<prefix> Bulk Access Request - Launcher
    Access"**. Your manager may need to approve it. After about a minute it shows up in your **Launchpad**.
-2. **Launchpad → "<prefix> Bulk Access Request"**. A form opens:
+
+   ![Request Center](docs/screenshots/launcher-0-request-center-access.png)
+2. **Launchpad → "<prefix> Bulk Access Request"** → **Launch**. A form opens:
+
+   ![Launchpad](docs/screenshots/launcher-1-launchpad.png)
 
    | Field | What to enter |
    |---|---|
-   | **People who need the access** | Search and add up to 30 people |
+   | **People who need the access** | Add up to 30 people. **Type the full username** (e.g. `Adam.Kennedy`): the picker only matches complete usernames. You can also scroll the list. |
    | **Access to request** | One or more items. *Everyone* above gets *every* item chosen here. |
    | **Approver** | The one person who decides. It can't be you. |
    | **ServiceNow incident (INC) number** | For example `INC0012345`. The form won't submit until the format is right. |
    | **Business justification** | Shown to the approver and stored on every request |
+
+   ![Filled-in form](docs/screenshots/launcher-4-form-filled.png)
+
+   A badly formatted INC is caught before anything is sent:
+
+   ![INC validation](docs/screenshots/launcher-3-inc-validation.png)
 3. **Submit.** The Launchpad shows *"Sent to <approver> for approval."*
 4. **You get an email** when it's decided. If approved, each person's request appears in
    **Request Center → Track My Requests** with your INC in the comment.
@@ -22,6 +32,9 @@ Guides for requesters, approvers and admins. Screenshots live in [docs/screensho
 Open **<prefix> Bulk Access Request** from the nav bar, or the plugin link your admin gave you, and follow the four
 steps: people → items → approver and INC → review. You can paste a list of usernames or emails. The
 **My bulk requests** tab shows everything you've submitted, grouped by INC. Details are in [plugin/README.md](plugin/README.md).
+
+![The plugin inside SailPoint](docs/screenshots/plugin-in-isc-1-new-request.png)
+![My bulk requests](docs/screenshots/plugin-in-isc-2-my-bulk-requests.png)
 
 ## Approvers
 - You get **one** approval task per bulk request, named **"Bulk access INC…"**, showing the requester and the

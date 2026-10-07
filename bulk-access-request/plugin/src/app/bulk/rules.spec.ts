@@ -130,3 +130,14 @@ describe('rules (core/bulkaccess/rules.py)', () => {
     expect(extractInc(EXAMPLE, null)).toBeNull();
   });
 });
+
+describe('assignedApproverNames', () => {
+  it('shows who was asked, not the admin who decided on their behalf', async () => {
+    const { assignedApproverNames } = await import('./bulk-api.service');
+    expect(assignedApproverNames({ assignedTo: [{ name: 'Aisha Bello' }], approvers: [{ name: 'hack.day' }] })).toEqual(['Aisha Bello']);
+    expect(assignedApproverNames({ approvers: [{ name: 'hack.day' }] })).toEqual(['hack.day']);
+    // decided by an admin on the approver's behalf: SailPoint records a reassignment
+    expect(assignedApproverNames({ assignedTo: null, approvers: [{ name: 'hack.day' }],
+      reassignmentHistory: [{ reassignedFrom: { name: 'Aisha Bello' } }] })).toEqual(['Aisha Bello']);
+  });
+});

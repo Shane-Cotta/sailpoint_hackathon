@@ -41,6 +41,23 @@ Everything is named with your **prefix** (for example `UCSF`), so it is easy to 
 - **All email can be redirected** to a test inbox (`notifications.overrideRecipients`).
 - **The approver is never the requester:** SailPoint would quietly reassign that approval to another admin, so it's blocked up front.
 
+## Screenshots
+Real SailPoint screens from the demo tenant (`docs/screenshots/`):
+
+| Launcher (A) | |
+|---|---|
+| ![Request the tool in the Request Center](docs/screenshots/launcher-0-request-center-access.png) | ![Launchpad](docs/screenshots/launcher-1-launchpad.png) |
+| *Users request "Launcher Access" in the Request Center* | *…then launch it from the Launchpad* |
+| ![The form](docs/screenshots/launcher-4-form-filled.png) | ![INC validation](docs/screenshots/launcher-3-inc-validation.png) |
+| *People, items, one approver, INC, justification* | *A bad INC can't be submitted* |
+
+| UI plugin (B), running inside SailPoint | |
+|---|---|
+| ![New request](docs/screenshots/plugin-in-isc-1-new-request.png) | ![My bulk requests](docs/screenshots/plugin-in-isc-2-my-bulk-requests.png) |
+| *Four steps: people, access, approver and INC, review* | *Everything you've submitted, by INC* |
+
+More plugin screens (made with sample data, one per step) are in [plugin/README.md](plugin/README.md).
+
 ## Folder layout
 ```
 bulk-access-request/
@@ -60,4 +77,5 @@ bulk-access-request/
   - self-approval blocked before any approval exists
 
   It's back in dry-run now.
-- **B. UI plugin: in progress.**
+- **B. UI plugin: installed (private to `hack.day`) and verified end to end**, all four runs passing: dry-run approve,
+  live approve (requests carry the INC), live deny, bad INC. 45 vitest tests plus the installer's tests. It's in dry-run now.

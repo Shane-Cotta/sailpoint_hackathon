@@ -49,6 +49,10 @@ def main(argv=None) -> int:
     ap.add_argument("--config", required=True)
     ap.add_argument("--people", required=True, help="comma-separated identity IDs (test identities only)")
     ap.add_argument("--approver", required=True, help="identity ID of the approver (not the PAT user)")
+    ap.add_argument("--justification", default="", help="override the justification text (e.g. to test long input)")
+    ap.add_argument("--before-decision", default="",
+                    help="shell command to run once the approval exists, before deciding it (e.g. take screenshots); "
+                         "gets IPID and INC in its environment")
     ap.add_argument("--scenario", choices=["approve", "deny", "self"], default="approve",
                     help="self = the requester names themselves as approver; must be stopped before any approval")
     a = ap.parse_args(argv)
@@ -71,7 +75,9 @@ def main(argv=None) -> int:
 
     # 1. Launch
     from datetime import datetime, timezone
-    launched_at = datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%S")
+    from datetime import timedelta
+    # 20 s of slack for clock differences between this machine and the tenant.
+    launched_at = (datetime.now(timezone.utc) - timedelta(seconds=20)).strftime("%Y-%m-%dT%H:%M:%S")
     started = t.call("POST", f"/v2025/launchers/{launcher['id']}/launch", {})
     ipid = started.get("interactiveProcessId")
     print(f"1. Launched: interactive process {ipid}")
@@ -80,17 +86,27 @@ def main(argv=None) -> int:
     def instance():
         res = t.call("GET", "/v2025/form-instances?limit=50") or {}
         rows = res.get("results") if isinstance(res, dict) else res
-        mine = [r for r in rows or [] if (r.get("formDefinitionId") == form["id"]) and r.get("state") in ("ASSIGNED", "IN_PROGRESS")]
+        # Only a form created by *this* launch: an older open form (e.g. one a person left
+        # half-filled in the Launchpad) must never be picked up and submitted.
+        mine = [r for r in rows or [] if r.get("formDefinitionId") == form["id"]
+                and r.get("state") in ("ASSIGNED", "IN_PROGRESS") and r.get("created", "")[:19] >= launched_at]
         mine.sort(key=lambda r: r.get("created", ""), reverse=True)
         return mine[0] if mine else None
     inst = wait(instance, "the form to be assigned")
     approver = me["id"] if a.scenario == "self" else a.approver
     form_data = {"people": people, "items": items, "approver": [approver], "inc": inc,
-                 "justification": f"E2E test {inc} ({a.scenario}) by launcher/e2e.py"}
-    t.call("PATCH", f"/v2025/form-instances/{inst['id']}", [
-        {"op": "replace", "path": "/formData", "value": form_data},
-        {"op": "replace", "path": "/state", "value": "SUBMITTED"},
-    ], content_type="application/json-patch+json")
+                 "justification": a.justification or f"E2E test {inc} ({a.scenario}) by launcher/e2e.py"}
+    # A form moves ASSIGNED -> IN_PROGRESS -> SUBMITTED; one PATCH may only advance it one
+    # step, so repeat until it reports SUBMITTED.
+    for _ in range(3):
+        result = t.call("PATCH", f"/v2025/form-instances/{inst['id']}", [
+            {"op": "replace", "path": "/formData", "value": form_data},
+            {"op": "replace", "path": "/state", "value": "SUBMITTED"},
+        ], content_type="application/json-patch+json")
+        if (result or {}).get("state") == "SUBMITTED":
+            break
+    else:
+        raise SystemExit(f"FAIL: form {inst['id']} would not submit (state {(result or {}).get('state')})")
     print(f"2. Form {inst['id']} submitted")
 
     if a.scenario == "self":
@@ -116,6 +132,9 @@ def main(argv=None) -> int:
         t.call("POST", "/v2025/generic-approvals/bulk-cancel", {"approvalIds": [appr["id"]], "comment": "E2E: wrong assignee, cancelled"})
         raise SystemExit(f"FAIL: approval went to {assignees}, expected {a.approver}; cancelled it.")
     print(f"3. Approval {appr['id']} assigned to the chosen approver ({[x.get('name') for x in appr['assignedTo']]})")
+    if a.before_decision:
+        import os, subprocess
+        subprocess.run(a.before_decision, shell=True, check=False, env={**os.environ, "IPID": ipid or "", "INC": inc})
     action = "approve" if a.scenario == "approve" else "reject"
     t.call("POST", f"/v2025/generic-approvals/{appr['id']}/{action}", {"comment": f"E2E {action} on behalf of the approver"})
     print(f"   {action}d on the approver's behalf")

@@ -43,6 +43,22 @@ export interface Execution {
 }
 
 /** The fields of a /v2025/generic-approvals row the page reads. */
+type Who = { name?: string };
+/**
+ * The approver the requester chose. While pending that is `assignedTo`. If the task was
+ * later reassigned (an admin acting on the approver's behalf shows up as a manual
+ * reassignment), the original choice is the first `reassignedFrom`; otherwise `approvers`.
+ */
+export function assignedApproverNames(a: {
+  assignedTo?: Who[] | null;
+  approvers?: Who[];
+  reassignmentHistory?: { reassignedFrom?: Who }[] | null;
+}): string[] {
+  const original = a.reassignmentHistory?.[0]?.reassignedFrom;
+  const people = a.assignedTo?.length ? a.assignedTo : original ? [original] : a.approvers ?? [];
+  return people.map((x) => x.name).filter((n): n is string => !!n);
+}
+
 export interface GenericApproval {
   id: string;
   name?: { value: string; locale?: string }[];
@@ -51,6 +67,11 @@ export interface GenericApproval {
   createdDate?: string;
   completedDate?: string | null;
   requester?: { identityID?: string; name?: string };
+  /** Who the approval was assigned to (the chosen approver). */
+  assignedTo?: { identityID?: string; name?: string }[] | null;
+  /** Present when the task was reassigned (e.g. an admin decided on the approver's behalf). */
+  reassignmentHistory?: { reassignedFrom?: { name?: string } }[] | null;
+  /** Who acted on it. An admin deciding on someone's behalf shows up here, not the assignee. */
   approvers?: { identityID?: string; name?: string }[];
   approvedBy?: { name?: string }[] | null;
   rejectedBy?: { name?: string }[] | null;

@@ -63,6 +63,8 @@ def bulk_form(cfg: Config, owner_id: str, options: list[dict[str, Any]]) -> dict
                                      "config": {"regex": cfg.inc_pattern, "message": cfg.inc_message}}],
          "config": {"label": "ServiceNow incident (INC) number", "placeholder": cfg.inc_example,
                     "helpText": cfg.inc_message}},
+        # No MAX_LENGTH here: on a TEXTAREA it silently stops the submission from reaching the
+        # workflow (verified live), and long justifications are accepted by the approval anyway.
         {"id": "justification", "key": F_JUSTIFICATION, "elementType": "TEXTAREA", "validations": required,
          "config": {"label": "Business justification", "rows": 3,
                     "helpText": "Shown to the approver and stored on every access request."}},

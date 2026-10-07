@@ -120,6 +120,8 @@ Rules for every track:
   - `sp:create-approval-request` breaks on single-item lists (the engine unwraps them). Use `sp:access:manage` (max 10 recipients;
     one loop per person; nested loops are not allowed). Steps inside a loop only see `$.loop.*`, so pass `context.$: "$"`.
   - Failure end steps need top-level `failureName`/`description`.
+  - **Never put a MAX_LENGTH validation on a form TEXTAREA**: the submission then never reaches the workflow (it waits forever).
+    REGEX on TEXT works. A form submitted through the API may need two PATCHes (ASSIGNED → IN_PROGRESS → SUBMITTED).
   - Launcher-triggered workflows must filter `$[?(@.workflowId == '<own id>')]`. A Launcher is only usable by holders of its
     auto-created `assignedLaunchers` entitlement (on the IdentityNow source). Disabling the workflow disables the Launcher asynchronously.
   - `/v3/requestable-objects` needs `types=` repeated (a comma list with ENTITLEMENT returns 400). There is no v3 identities API (use v2025).

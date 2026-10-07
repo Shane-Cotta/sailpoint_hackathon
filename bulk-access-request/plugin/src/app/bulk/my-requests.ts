@@ -7,7 +7,7 @@
  *  - access requests the workflow made after approval (live mode), whose
  *    comment starts with the INC.
  */
-import type { AccessRequestStatus, GenericApproval } from './bulk-api.service';
+import { assignedApproverNames, type AccessRequestStatus, type GenericApproval } from './bulk-api.service';
 import type { RuntimeConfig } from './runtime-config';
 import { APPROVAL_NAME_PREFIX, extractInc } from './rules';
 
@@ -62,7 +62,7 @@ function toSubmission(a: GenericApproval): Submission {
     approvalId: a.id,
     executionId: executionIdOf(a),
     status: a.status,
-    approver: (a.approvers ?? []).map((x) => x.name).filter(Boolean).join(', ') || 'unknown',
+    approver: assignedApproverNames(a).join(', ') || 'unknown',
     decidedBy: decided,
     created: a.createdDate ?? '',
     completed: a.completedDate ?? null,
