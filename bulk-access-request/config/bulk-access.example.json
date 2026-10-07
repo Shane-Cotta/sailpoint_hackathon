@@ -1,0 +1,24 @@
+{
+  "_comment": "Copy to config/<tenant>.json and adjust. Credentials are NOT stored here: set SAIL_BASE_URL, SAIL_CLIENT_ID and SAIL_CLIENT_SECRET (a PAT of an ORG_ADMIN) in the environment or in the .env file named below.",
+  "envFile": ".env",
+  "prefix": "UCSF",
+  "mode": "dry-run",
+  "inc": {
+    "pattern": "^INC\\d{7}$",
+    "example": "INC0012345",
+    "message": "Enter a ServiceNow incident number: INC followed by 7 digits, e.g. INC0012345."
+  },
+  "catalog": {
+    "types": ["ACCESS_PROFILE", "ROLE", "ENTITLEMENT"],
+    "nameStartsWith": null,
+    "maxItems": 25
+  },
+  "people": { "max": 50 },
+  "approval": { "timeoutDays": 7, "actionAtTimeout": "EXPIRED", "priority": "MEDIUM" },
+  "notifications": {
+    "overrideRecipients": [],
+    "ccApprover": true
+  },
+  "owner": null,
+  "plugin": { "alias": "ucsf-bulk-access", "displayName": "UCSF Bulk Access Request" }
+}
