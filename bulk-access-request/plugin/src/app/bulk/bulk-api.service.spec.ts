@@ -96,6 +96,26 @@ describe('BulkApiService', () => {
     expect(found).toHaveLength(2);
   });
 
+  it("loads the user's own bulk approvals with approver details the list leaves out", async () => {
+    const row = (id: string, name: string, requester: string, created: string) =>
+      ({ id, name: [{ value: name }], status: 'PENDING', requester: { identityID: requester }, createdDate: created });
+    const { api, plugin } = setup({
+      '/v2025/generic-approvals?': [
+        row('a1', 'Bulk access INC0000001', 'me', '2026-10-01'),
+        row('a2', 'Bulk access INC0000002', 'someone-else', '2026-10-02'),
+        row('a3', 'Quarterly review', 'me', '2026-10-03'),
+        row('a4', 'Bulk access INC0000004', 'me', '2026-10-04'),
+      ],
+      '/v2025/generic-approvals/a1': { approvers: [{ name: 'Aisha Bello' }] },
+      '/v2025/generic-approvals/a4': Promise.reject(new Error('boom')),
+    });
+    const mine = await api.myBulkApprovals('me');
+    expect(mine.map((a) => a.id)).toEqual(['a4', 'a1']);                 // newest first, ours only
+    expect(mine[1].approvers).toEqual([{ name: 'Aisha Bello' }]);
+    expect(mine[0].name?.[0].value).toBe('Bulk access INC0000004');     // detail failed: list row kept
+    expect(plugin.get).toHaveBeenCalledTimes(3);
+  });
+
   it('splits pasted lists and escapes search terms', () => {
     expect(splitPasted(' a@x.edu\nb, c;a@x.edu\t\n')).toEqual(['a@x.edu', 'b', 'c']);
     expect(escapeQuery('o"brien (x)')).toBe('o\\"brien \\(x\\)');

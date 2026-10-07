@@ -50,12 +50,16 @@ def main(argv: list[str] | None = None) -> int:
                and any(str(n.get("value", "")).startswith("Bulk access ") for n in g.get("name") or [])]
     print(f"Pending bulk approvals: {len(pending)}")
     for g in pending:
+        g = tenant.call("GET", f"/v2025/generic-approvals/{g['id']}")   # the list leaves out the approvers
         approvers = ", ".join(x.get("name", "?") for x in g.get("approvers") or [])
         print(f"  {g['id']}  {g['name'][0]['value']}  requester={g.get('requester', {}).get('name')}  approver={approvers or '?'}")
 
     if a.plugin:
         plugin = lib.find_plugin(cfg, Path(a.workdir))
-        print(f"Plugin instance: {plugin.get('id')}  alias {plugin.get('alias')}  name {plugin.get('name')}"
+        name = (plugin or {}).get("name")
+        name = name.get("en") if isinstance(name, dict) else name
+        print(f"Plugin instance: {plugin.get('id')}  alias {plugin.get('alias')}  name {name!r}  "
+              f"bundle {plugin.get('activeAssetBundleId') or 'none (not uploaded)'}"
               if plugin else f"Plugin instance: none with alias {cfg.plugin_alias!r}")
     return 0
 

@@ -3,8 +3,25 @@
 import { DEFAULT_CONFIG, parseRuntimeConfig, RuntimeConfigError, type RuntimeConfig } from './runtime-config';
 import { catalogOptions, clip, extractInc, incIsValid, justificationMax, validateRequest } from './rules';
 
-/** The committed public/bulk-access.config.json, i.e. the example tenant config. */
-import committed from '../../../public/bulk-access.config.json';
+/**
+ * What plugin/install.py writes for config/bulk-access.example.json (pytest checks that
+ * the committed public/bulk-access.config.json equals it). Inlined, because install.py
+ * overwrites that file in a build copy with the tenant's own values.
+ */
+const committed = {
+  prefix: 'UCSF',
+  mode: 'dry-run',
+  workflowName: 'UCSF Bulk Access Request (Plugin)',
+  workflowId: null,
+  incPattern: '^INC\\d{7}$',
+  incMessage: 'Enter a ServiceNow incident number: INC followed by 7 digits, e.g. INC0012345.',
+  incExample: 'INC0012345',
+  peopleMax: 50,
+  itemsMax: 25,
+  catalogTypes: ['ACCESS_PROFILE', 'ROLE', 'ENTITLEMENT'],
+  nameStartsWith: null,
+  launcherName: 'UCSF Bulk Access Request',
+};
 
 const EXAMPLE: RuntimeConfig = parseRuntimeConfig(committed);
 
@@ -13,7 +30,7 @@ function cfgWith(overrides: Partial<RuntimeConfig>): RuntimeConfig {
 }
 
 describe('runtime config', () => {
-  it('the committed config loads in dry-run with the core defaults', () => {
+  it('the example config loads in dry-run with the core defaults', () => {
     expect(EXAMPLE.mode).toBe('dry-run');
     expect(EXAMPLE.incPattern).toBe('^INC\\d{7}$');
     expect(EXAMPLE.itemsMax).toBe(25);

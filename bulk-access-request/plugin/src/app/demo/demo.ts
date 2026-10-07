@@ -92,7 +92,15 @@ export class DemoPluginService {
     if (route === '/v3/accounts') return delay([] as T);
     if (route === '/v3/workflows') return delay([{ id: 'demo-workflow', name: DEMO_CONFIG.workflowName }] as T);
     if (route.startsWith('/v3/workflow-executions/')) return delay({ id: route.split('/').pop(), status: 'Running' } as T);
-    if (route === '/v2025/generic-approvals') return delay([...(this.submitted ? [this.submitted] : []), ...DEMO_APPROVALS] as T);
+    const approvals = [...(this.submitted ? [this.submitted] : []), ...DEMO_APPROVALS];
+    // Like the real API, the list leaves out approvers and deciders; the detail call has them.
+    if (route === '/v2025/generic-approvals') {
+      return delay(approvals.map(({ approvers: _a, approvedBy: _b, rejectedBy: _r, ...row }) => row) as T);
+    }
+    if (route.startsWith('/v2025/generic-approvals/')) {
+      const hit = approvals.find((a) => a.id === route.split('/').pop());
+      return hit ? delay(hit as T) : Promise.reject(Object.assign(new Error('Not found'), { status: 404 }));
+    }
     if (route === '/v3/access-request-status') return delay(DEMO_REQUESTS as T);
     return Promise.reject(new Error(`demo: no fixture for GET ${path}`));
   }

@@ -36,7 +36,7 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--workdir", default=str(lib.PLUGIN_DIR),
                     help="Angular project to build and upload (default: this folder)")
     ap.add_argument("--public", action="store_true",
-                    help="with --deploy on first create: visible to everyone, not just you (default: --private)")
+                    help="with --deploy: make the plugin visible to everyone, not just you (default: private)")
     a = ap.parse_args(argv)
 
     cfg = config_mod.load(a.config)
@@ -57,8 +57,8 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n== {lib.MANIFEST} ==\n{definitions.pretty(lib.manifest(cfg))}")
         if a.deploy:
             print(f"\n== Deploy (in {workdir}) ==\nnpm run build\n"
-                  f"sail ui-plugins create {'--private' if not a.public else ''}  (only if alias {cfg.plugin_alias!r} is new)\n"
-                  "sail ui-plugins push-manifest\nsail ui-plugins upload")
+                  f"sail ui-plugins create|push-manifest {'' if a.public else '--private'}  (create only if alias {cfg.plugin_alias!r} is new)\n"
+                  "sail ui-plugins upload")
         print("\nDry run: nothing was changed.")
         return 0
 
@@ -86,12 +86,15 @@ def main(argv: list[str] | None = None) -> int:
         print("Building (npm run build)…")
         subprocess.run(["npm", "run", "build"], cwd=workdir, check=True, stdout=subprocess.DEVNULL)
         plugin = lib.find_plugin(cfg, workdir)
+        # push-manifest replaces the whole manifest, visibility included, so --private
+        # must be repeated on every update or the plugin becomes visible to everyone.
+        visibility = [] if a.public else ["--private"]
         if plugin:
-            lib.sail(cfg, ["ui-plugins", "push-manifest"], workdir)
-            print(f"Plugin manifest pushed: {plugin.get('id')}  alias {cfg.plugin_alias}")
+            lib.sail(cfg, ["ui-plugins", "push-manifest", *visibility], workdir)
+            print(f"Plugin manifest pushed: {plugin.get('id')}  alias {cfg.plugin_alias}"
+                  + ("  (visible to everyone)" if a.public else "  (private to you)"))
         else:
-            args = ["ui-plugins", "create"] + ([] if a.public else ["--private"])
-            print(lib.sail(cfg, args, workdir).stdout.strip())
+            print(lib.sail(cfg, ["ui-plugins", "create", *visibility], workdir).stdout.strip())
         print(lib.sail(cfg, ["ui-plugins", "upload"], workdir).stdout.strip())
         plugin = lib.find_plugin(cfg, workdir) or {}
         ui = tenant.base_url.replace(".api.", ".")

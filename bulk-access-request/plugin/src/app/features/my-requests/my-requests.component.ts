@@ -63,7 +63,7 @@ export class MyRequestsComponent {
     if (!me) return;
     this.loading.set(true);
     this.errors.set([]);
-    const [approvals, requests] = await Promise.allSettled([this.api.approvals(), this.api.myAccessRequests(me)]);
+    const [approvals, requests] = await Promise.allSettled([this.api.myBulkApprovals(me), this.api.myAccessRequests(me)]);
     const errors: string[] = [];
     if (approvals.status === 'rejected') errors.push(`Approvals: ${describeError(approvals.reason)}`);
     if (requests.status === 'rejected') errors.push(`Access requests: ${describeError(requests.reason)}`);

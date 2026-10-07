@@ -162,6 +162,8 @@ export class RequestStore implements OnDestroy {
 
       if (approval?.status === 'APPROVED' || approval?.status === 'REJECTED' || approval?.status === 'EXPIRED'
           || approval?.status === 'CANCELLED') {
+        // The list leaves out who decided; the detail call has it.
+        Object.assign(approval, await this.api.approval(approval.id).catch(() => ({})));
         const denied = approval.status !== 'APPROVED';
         const mode = this.bulkConfig.config().mode;
         const what = denied

@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { SailpointPluginService } from '@core';
 
 import type { RuntimeConfig } from './runtime-config';
-import { catalogOptions, type AccessItem, type CatalogOption } from './rules';
+import { APPROVAL_NAME_PREFIX, catalogOptions, type AccessItem, type CatalogOption } from './rules';
 
 /**
  * Every SailPoint API call the page makes, as the signed-in user with the
@@ -332,6 +332,35 @@ export class BulkApiService {
 
   async approvals(): Promise<GenericApproval[]> {
     return (await this.plugin.get<GenericApproval[]>('/v2025/generic-approvals?limit=250')) ?? [];
+  }
+
+  /**
+   * The user's own bulk approvals with their approvers and deciders. The list call
+   * leaves `approvers`/`approvedBy`/`rejectedBy` out, so the newest `max` are
+   * fetched one by one (the list row is kept if a detail call fails).
+   */
+  async myBulkApprovals(requesterId: string, max = 30, concurrency = 5): Promise<GenericApproval[]> {
+    const mine = (await this.approvals())
+      .filter((a) => a.requester?.identityID === requesterId && (a.name?.[0]?.value ?? '').startsWith(APPROVAL_NAME_PREFIX))
+      .sort((a, b) => (b.createdDate ?? '').localeCompare(a.createdDate ?? ''))
+      .slice(0, max);
+    const out = [...mine];
+    let next = 0;
+    const worker = async () => {
+      for (let i = next++; i < mine.length; i = next++) {
+        try {
+          out[i] = { ...mine[i], ...(await this.plugin.get<GenericApproval>(`/v2025/generic-approvals/${encodeURIComponent(mine[i].id)}`)) };
+        } catch {
+          /* keep the list row */
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, mine.length) }, worker));
+    return out;
+  }
+
+  approval(id: string): Promise<GenericApproval> {
+    return this.plugin.get<GenericApproval>(`/v2025/generic-approvals/${encodeURIComponent(id)}`);
   }
 
   async myAccessRequests(requesterId: string): Promise<AccessRequestStatus[]> {

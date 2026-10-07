@@ -106,8 +106,14 @@ def test_plugin_workflow_reads_the_trigger_input_the_page_sends():
 def test_live_mode_requests_per_person_with_the_inc_in_every_comment():
     cfg = config.from_dict({**json.loads(EXAMPLE.read_text()), "mode": "live"})
     loop = lib.plugin_workflow(cfg, "o", None)["definition"]["steps"]["Request Access"]["attributes"]
-    assert loop["input.$"] == "$.trigger.people" and loop["context.$"] == "$.trigger.items"
-    assert loop["steps"]["Manage Access"]["attributes"]["comments"].startswith("{{$.trigger.inc}} |")
+    assert loop["input.$"] == "$.trigger.people"
+    # Inside a loop only $.loop.* resolves, so the loop carries the whole state as its context.
+    assert loop["context.$"] == "$"
+    manage = loop["steps"]["Manage Access"]["attributes"]
+    assert manage["requestedItems.$"] == "$.loop.context.trigger.items"
+    assert manage["comments"].startswith("{{$.loop.context.trigger.inc}} | Bulk access request by "
+                                         "{{$.loop.context.getRequester.attributes.displayName}}")
+    assert "{{$.trigger" not in manage["comments"]
 
 
 def test_install_creates_then_updates_by_name(tenant, tmp_path, capsys):
@@ -165,3 +171,18 @@ def test_uninstall_asks_before_deleting(tenant, monkeypatch, capsys):
     assert tenant.writes == []
     assert uninstall.main(["--config", str(EXAMPLE), "--yes"]) == 0
     assert [(m, p) for m, p, _ in tenant.writes] == [("DELETE", "/v2025/workflows/wf-1")]
+
+
+def test_deploy_keeps_the_plugin_private_on_every_update(tenant, tmp_path, monkeypatch):
+    (tmp_path / "node_modules").mkdir()
+    calls = []
+    monkeypatch.setattr(install.subprocess, "run", lambda *a, **k: None)              # npm run build
+    monkeypatch.setattr(lib, "sail", lambda cfg, args, workdir, **k: calls.append(args) or type("P", (), {"stdout": ""})())
+    monkeypatch.setattr(lib, "find_plugin", lambda cfg, workdir: {"id": "p-1", "alias": cfg.plugin_alias})
+    assert install.main(["--config", str(EXAMPLE), "--workdir", str(tmp_path), "--deploy"]) == 0
+    # push-manifest replaces the whole manifest, visibility included
+    assert calls == [["ui-plugins", "push-manifest", "--private"], ["ui-plugins", "upload"]]
+    calls.clear()
+    monkeypatch.setattr(lib, "find_plugin", lambda cfg, workdir: None)
+    assert install.main(["--config", str(EXAMPLE), "--workdir", str(tmp_path), "--deploy", "--public"]) == 0
+    assert calls[0] == ["ui-plugins", "create"]
