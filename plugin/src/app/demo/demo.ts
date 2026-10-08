@@ -3,8 +3,9 @@
  * Used for the README screenshots and for UI work. A stub replaces
  * SailpointPluginService and answers the same API paths from fixtures.ts.
  *
- * Scenarios: new (empty), people, items, approver, approver-error, review,
- * submitted, history.
+ * Scenarios: new (empty), people (600 chosen: no limit, 3 parts), items, approver,
+ * approver-error, temporary (approver step with temporary access), review,
+ * parts-review (600 people, 3 parts, temporary), submitted, parts-submitted, history.
  */
 import { computed, inject, Injectable, provideAppInitializer, signal, type EnvironmentProviders, type Provider } from '@angular/core';
 import type { PluginContext } from '@sailpoint/ui-plugin-sdk';
@@ -15,11 +16,14 @@ import { BulkConfigService } from '../bulk/bulk-config.service';
 import { NavService } from '../bulk/nav';
 import { RequestStore } from '../bulk/request-store';
 import {
-  DEMO_APPROVALS, DEMO_CATALOG, DEMO_CONFIG, DEMO_HELD, DEMO_IDENTITIES, DEMO_ME, DEMO_NEW_EXECUTION,
-  DEMO_REQUESTS, demoItem, demoNewApproval, demoPerson,
+  crowdPeople, DEMO_APPROVALS, DEMO_CATALOG, DEMO_CONFIG, DEMO_CROWD, DEMO_HELD, DEMO_IDENTITIES, DEMO_ME,
+  DEMO_REQUESTS, demoExecutionId, demoItem, demoNewApproval, demoPerson,
 } from './fixtures';
 
-export const DEMO_SCENARIOS = ['new', 'people', 'items', 'approver', 'approver-error', 'review', 'submitted', 'history'] as const;
+export const DEMO_SCENARIOS = [
+  'new', 'people', 'items', 'approver', 'approver-error', 'temporary', 'review', 'parts-review', 'submitted',
+  'parts-submitted', 'history',
+] as const;
 export type DemoScenario = (typeof DEMO_SCENARIOS)[number];
 
 /** The scenario named in the URL, or null. Never inside an iframe (that is ISC). */
@@ -58,7 +62,9 @@ export class DemoPluginService {
   readonly user = computed(() => this._context()?.user ?? null);
   readonly apiReady = computed(() => true);
 
-  private submitted: GenericApproval | null = null;
+  /** Approvals the demo's workflow runs created, newest first. */
+  private submitted: GenericApproval[] = [];
+  private runs = 0;
 
   whenReady(): Promise<PluginContext> {
     return Promise.resolve(this._context()!);
@@ -78,21 +84,22 @@ export class DemoPluginService {
     }
     if (route.startsWith('/v2025/identities/')) {
       const id = route.split('/').pop();
-      const doc = DEMO_IDENTITIES.find((d) => d.id === id);
+      const doc = [...DEMO_IDENTITIES, ...DEMO_CROWD].find((d) => d.id === id);
       return doc ? delay({ id: doc.id, name: doc.name, alias: doc.name, emailAddress: doc.email,
         attributes: { displayName: doc.displayName, department: doc.attributes.department } } as T)
         : Promise.reject(Object.assign(new Error('Not found'), { status: 404 }));
     }
     if (route === '/v2025/identities') {
-      const wanted = filterValues(path);
-      return delay(DEMO_IDENTITIES.filter((d) => wanted.includes(d.name.toLowerCase()) || wanted.includes(d.email.toLowerCase()))
+      const wanted = new Set(filterValues(path));
+      return delay([...DEMO_IDENTITIES, ...DEMO_CROWD]
+        .filter((d) => wanted.has(d.id) || wanted.has(d.name.toLowerCase()) || wanted.has(d.email.toLowerCase()))
         .map((d) => ({ id: d.id, name: d.name, alias: d.name, emailAddress: d.email,
           attributes: { displayName: d.displayName, department: d.attributes.department } })) as T);
     }
     if (route === '/v3/accounts') return delay([] as T);
     if (route === '/v3/workflows') return delay([{ id: 'demo-workflow', name: DEMO_CONFIG.workflowName }] as T);
     if (route.startsWith('/v3/workflow-executions/')) return delay({ id: route.split('/').pop(), status: 'Running' } as T);
-    const approvals = [...(this.submitted ? [this.submitted] : []), ...DEMO_APPROVALS];
+    const approvals = [...this.submitted, ...DEMO_APPROVALS];
     // Like the real API, the list leaves out approvers and deciders; the detail call has them.
     if (route === '/v2025/generic-approvals') {
       return delay(approvals.map(({ approvers: _a, approvedBy: _b, rejectedBy: _r, ...row }) => row) as T);
@@ -101,7 +108,10 @@ export class DemoPluginService {
       const hit = approvals.find((a) => a.id === route.split('/').pop());
       return hit ? delay(hit as T) : Promise.reject(Object.assign(new Error('Not found'), { status: 404 }));
     }
-    if (route === '/v3/access-request-status') return delay(DEMO_REQUESTS as T);
+    if (route === '/v3/access-request-status') {
+      const offset = Number(params.get('offset') ?? 0);
+      return delay(DEMO_REQUESTS.slice(offset, offset + Number(params.get('limit') ?? 250)) as T);
+    }
     return Promise.reject(new Error(`demo: no fixture for GET ${path}`));
   }
 
@@ -121,10 +131,11 @@ export class DemoPluginService {
       return delay(DEMO_CATALOG.filter((c) => c.source).map((c) => ({ id: c.row['id'], source: { name: c.source } })) as T);
     }
     if (/^\/v3\/workflows\/[^/]+\/test$/.test(path)) {
-      const input = body['input'] as { inc: string; approverId: string };
+      const input = body['input'] as { inc: string; approverId: string; partLabel?: string; accessLabel?: string };
       const approver = DEMO_IDENTITIES.find((d) => d.id === input.approverId)?.displayName ?? 'the approver';
-      setTimeout(() => (this.submitted = demoNewApproval(input.inc, approver)), 1500);
-      return delay({ workflowExecutionId: DEMO_NEW_EXECUTION } as T, 600);
+      const k = this.runs++;
+      setTimeout(() => this.submitted.unshift(demoNewApproval(input.inc, approver, k, input.partLabel, input.accessLabel)), 1500);
+      return delay({ workflowExecutionId: demoExecutionId(k) } as T, 600);
     }
     return Promise.reject(new Error(`demo: no fixture for POST ${path}`));
   }
@@ -150,19 +161,21 @@ export function applyScenario(scenario: DemoScenario, store: RequestStore, nav: 
   }
   if (scenario === 'new') return;
   const chosen = ['Alan Bradley', 'Andrei Popescu', 'Amelia Thornton', 'Beatriz Santos', 'Bruno Marchetti'].map((n) => demoPerson(n));
+  const big = scenario === 'people' || scenario === 'parts-review' || scenario === 'parts-submitted';
   if (scenario === 'people') {
-    store.people.set(chosen.slice(0, 4));
+    // A pasted list of 600 people: no people limit, sent as 3 approvals of 250.
+    store.people.set([...chosen.slice(0, 4), ...crowdPeople(596)]);
     store.peopleQuery.set('br');
     store.peopleResults.set(['Alan Bradley', 'Brenda Cooper', 'Bruno Marchetti'].map((n) => demoPerson(n)));
     store.resolution.set({
-      resolved: [demoPerson('Amelia Thornton'), demoPerson('Beatriz Santos')],
+      resolved: crowdPeople(596),
       unresolved: ['j.doe@example.edu'],
       ambiguous: [{ token: 'andrea.kim', matches: [demoPerson('Andrea Kim', 0), demoPerson('Andrea Kim', 1)] }],
     });
     store.pasteText.set('j.doe@example.edu\nandrea.kim');
     return;
   }
-  store.people.set(chosen);
+  store.people.set(big ? [...chosen, ...crowdPeople(595)] : chosen);
   store.items.set([demoItem('ACME Bulk Test Access'), demoItem('PACS Radiologist Workstation')]);
   if (scenario === 'items') {
     store.step.set(2);
@@ -172,12 +185,18 @@ export function applyScenario(scenario: DemoScenario, store: RequestStore, nav: 
   store.approver.set(demoPerson(scenario === 'approver-error' ? DEMO_ME.name : 'Aisha Bello'));
   store.inc.set(scenario === 'approver-error' ? 'INC12345' : 'INC0048391');
   store.justification.set('Radiology is moving to the new PACS on 14 Oct; these readers need workstation access before go-live.');
-  if (scenario === 'approver' || scenario === 'approver-error') {
+  if (big || scenario === 'temporary') {
+    store.accessMode.set('duration');
+    store.durationN.set(30);
+    store.durationUnit.set('DAYS');
+  }
+  if (big) store.justification.set('Hospital-wide move to the new PACS on 14 Oct: all clinical readers need workstation access for the cutover.');
+  if (scenario === 'approver' || scenario === 'approver-error' || scenario === 'temporary') {
     store.step.set(3);
     return;
   }
   store.step.set(4);
-  if (scenario === 'submitted') void store.submit();
+  if (scenario === 'submitted' || scenario === 'parts-submitted') void store.submit();
 }
 
 export function demoProviders(scenario: DemoScenario): (Provider | EnvironmentProviders)[] {

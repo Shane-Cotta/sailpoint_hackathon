@@ -43,11 +43,19 @@ def runtime_config(cfg: Config, workflow_id: str | None = None) -> dict[str, Any
         "incPattern": cfg.inc_pattern,
         "incMessage": cfg.inc_message,
         "incExample": cfg.inc_example,
-        "peopleMax": cfg.people_max,
+        # null = no limit; bigger lists go out as several approvals of `partSize` (the loop limit).
+        "peopleMax": cfg.plugin_people_max,
+        "partSize": cfg.part_size,
         "itemsMax": cfg.catalog_max_items,
         "catalogTypes": list(cfg.catalog_types),
         "nameStartsWith": cfg.catalog_name_starts_with,
         "launcherName": cfg.launcher_name,
+        "temporary": {
+            "enabled": cfg.temporary_enabled,
+            "allow": list(cfg.temporary_allow),
+            "units": list(cfg.temporary_units),
+            "maxDays": cfg.temporary_max_days,
+        },
     }
 
 

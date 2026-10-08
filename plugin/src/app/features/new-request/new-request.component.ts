@@ -29,7 +29,8 @@ export class NewRequestComponent {
     3: !!this.store.approver()
       && this.store.approver()!.id !== this.store.requesterId()
       && incIsValid(this.cfg(), this.store.inc())
-      && !!this.store.justification().trim(),
+      && !!this.store.justification().trim()
+      && !this.store.accessProblems().length,
   }));
 
   /** Steps after an unfinished one are locked; once submitted, only the last step is shown. */

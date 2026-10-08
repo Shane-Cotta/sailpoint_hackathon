@@ -89,4 +89,72 @@
       <small class="field__hint">Shown to the approver and stored on every access request. {{ store.justification().length }}/{{ store.justificationMax() }}</small>
     </section>
   </div>
+
+  @if (store.temporaryModes().length) {
+    <section class="panel temporary" aria-labelledby="access-length-label">
+      <span class="field__label" id="access-length-label">How long should the access last?</span>
+      <p-selectbutton
+        [options]="modeOptions()"
+        optionLabel="label"
+        optionValue="value"
+        [allowEmpty]="false"
+        ariaLabelledBy="access-length-label"
+        [ngModel]="store.accessMode()"
+        (ngModelChange)="setMode($event)"
+      />
+      @switch (store.accessMode()) {
+        @case ('duration') {
+          <div class="temporary__row">
+            <label class="sr-only" for="duration-n">Duration</label>
+            <input
+              id="duration-n"
+              pInputText
+              type="number"
+              min="1"
+              step="1"
+              inputmode="numeric"
+              class="temporary__number"
+              [ngModel]="store.durationN()"
+              (ngModelChange)="setDuration($event)"
+            />
+            <p-select
+              [options]="unitOptions()"
+              optionLabel="label"
+              optionValue="value"
+              ariaLabel="Unit"
+              styleClass="temporary__unit"
+              [ngModel]="store.unit()"
+              (ngModelChange)="setUnit($event)"
+            />
+          </div>
+        }
+        @case ('endDate') {
+          <div class="temporary__row">
+            <label class="sr-only" for="end-date">End date</label>
+            <input
+              id="end-date"
+              pInputText
+              type="date"
+              class="temporary__date"
+              [attr.min]="minDate()"
+              [attr.max]="maxDate()"
+              [ngModel]="store.endDate()"
+              (ngModelChange)="store.endDate.set($event ?? '')"
+            />
+          </div>
+        }
+      }
+      @if (store.accessMode() !== 'permanent') {
+        @for (p of store.accessProblems(); track p) {
+          <p-message severity="error" size="small" [text]="p" />
+        } @empty {
+          <small class="field__ok">✓ {{ store.accessLabel() }}. {{ removalPreview() }}</small>
+        }
+      } @else {
+        <small class="field__hint">The access stays until someone removes it.
+          @if (cfg().temporary.maxDays !== null) { Temporary access can last at most {{ cfg().temporary.maxDays }} days. }
+        </small>
+      }
+    </section>
+  }
 </div>

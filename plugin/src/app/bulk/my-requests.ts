@@ -9,9 +9,10 @@
  */
 import { assignedApproverNames, type AccessRequestStatus, type GenericApproval } from './bulk-api.service';
 import type { RuntimeConfig } from './runtime-config';
-import { APPROVAL_NAME_PREFIX, extractInc } from './rules';
+import { APPROVAL_NAME_PREFIX, extractInc, partOf } from './rules';
 
-export type GroupStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED' | 'REQUESTED';
+/** MIXED: the parts of one request were decided differently (some approved, some not). */
+export type GroupStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED' | 'REQUESTED' | 'MIXED';
 
 export interface Submission {
   approvalId: string;
@@ -22,6 +23,9 @@ export interface Submission {
   created: string;
   completed: string | null;
   description: string;
+  /** Which part of a request split into several approvals ("Bulk access INC… (2/3)"); null when it's one. */
+  part: number | null;
+  parts: number | null;
 }
 
 export interface RequestRow {
@@ -30,6 +34,8 @@ export interface RequestRow {
   type: string;
   state: string;
   created: string;
+  /** When temporary access is removed (null = permanent). */
+  removeDate: string | null;
 }
 
 export interface BulkGroup {
@@ -37,6 +43,10 @@ export interface BulkGroup {
   status: GroupStatus;
   /** Most recent submission first. */
   submissions: Submission[];
+  /** The latest submission's parts (one entry when it wasn't split): what the status sums up. */
+  latest: Submission[];
+  /** Parts of the latest submission approved, out of how many ("2 of 3 approved"). */
+  approvedParts: number;
   requests: RequestRow[];
   people: number;
   items: number;
@@ -58,6 +68,7 @@ export function isBulkApproval(a: GenericApproval): boolean {
 
 function toSubmission(a: GenericApproval): Submission {
   const decided = a.approvedBy?.[0]?.name ?? a.rejectedBy?.[0]?.name ?? null;
+  const part = partOf(approvalName(a));
   return {
     approvalId: a.id,
     executionId: executionIdOf(a),
@@ -67,7 +78,34 @@ function toSubmission(a: GenericApproval): Submission {
     created: a.createdDate ?? '',
     completed: a.completedDate ?? null,
     description: a.description?.[0]?.value ?? '',
+    part: part?.part ?? null,
+    parts: part?.parts ?? null,
   };
+}
+
+/**
+ * The latest submission of an INC, with all its parts: the newest approval, plus (when
+ * it is part k of n) the newest approval of every other part 1..n of that size, so a
+ * re-submitted INC isn't mixed with its earlier attempt.
+ */
+export function latestSubmission(submissions: Submission[]): Submission[] {
+  const newest = submissions[0];
+  if (!newest) return [];
+  if (!newest.parts || newest.parts < 2) return [newest];
+  const byPart = new Map<number, Submission>();
+  for (const s of submissions) {
+    if (s.parts === newest.parts && s.part && !byPart.has(s.part)) byPart.set(s.part, s);
+  }
+  return [...byPart.values()].sort((a, b) => a.part! - b.part!);
+}
+
+/** One status for several parts: all the same → that status; any pending → PENDING; else MIXED. */
+export function combinedStatus(statuses: string[]): GroupStatus {
+  if (!statuses.length) return 'REQUESTED';
+  const known = statuses.map((s) => (KNOWN.includes(s as GroupStatus) ? (s as GroupStatus) : 'REQUESTED'));
+  if (known.every((s) => s === known[0])) return known[0];
+  if (known.includes('PENDING')) return 'PENDING';
+  return 'MIXED';
 }
 
 const KNOWN: GroupStatus[] = ['PENDING', 'APPROVED', 'REJECTED', 'CANCELLED', 'EXPIRED'];
@@ -82,7 +120,8 @@ export function groupByInc(
   const group = (inc: string) => {
     let g = groups.get(inc);
     if (!g) {
-      g = { inc, status: 'REQUESTED', submissions: [], requests: [], people: 0, items: 0, lastActivity: '' };
+      g = { inc, status: 'REQUESTED', submissions: [], latest: [], approvedParts: 0, requests: [], people: 0, items: 0,
+        lastActivity: '' };
       groups.set(inc, g);
     }
     return g;
@@ -103,14 +142,16 @@ export function groupByInc(
       type: r.type,
       state: r.state,
       created: r.created ?? '',
+      removeDate: r.removeDate ?? null,
     });
   }
 
   for (const g of groups.values()) {
     g.submissions.sort((x, y) => y.created.localeCompare(x.created));
     g.requests.sort((x, y) => x.person.localeCompare(y.person) || x.item.localeCompare(y.item));
-    const latest = g.submissions[0]?.status as GroupStatus | undefined;
-    g.status = latest && KNOWN.includes(latest) ? latest : 'REQUESTED';
+    g.latest = latestSubmission(g.submissions);
+    g.status = combinedStatus(g.latest.map((s) => s.status));
+    g.approvedParts = g.latest.filter((s) => s.status === 'APPROVED').length;
     g.people = new Set(g.requests.map((r) => r.person)).size;
     g.items = new Set(g.requests.map((r) => r.item)).size;
     g.lastActivity = [...g.submissions.map((s) => s.completed || s.created), ...g.requests.map((r) => r.created)]
@@ -130,6 +171,7 @@ export function statusLabel(status: string): { label: string; severity: 'success
     case 'CANCELLED': return { label: 'Cancelled', severity: 'secondary' };
     case 'EXPIRED': return { label: 'Expired', severity: 'secondary' };
     case 'REQUESTED': return { label: 'Requested', severity: 'info' };
+    case 'MIXED': return { label: 'Partly approved', severity: 'warn' };
     default: return { label: status, severity: 'secondary' };
   }
 }
