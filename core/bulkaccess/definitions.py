@@ -25,8 +25,9 @@ from __future__ import annotations
 import json
 from typing import Any
 
-from .config import Config
-from .rules import APPROVAL_COMMENT_MAX, APPROVAL_DESCRIPTION_MAX
+from .config import DURATION_UNITS, Config
+from .rules import (APPROVAL_COMMENT_MAX, APPROVAL_DESCRIPTION_MAX, MSG_DURATION_NUMBER, MSG_DURATION_UNIT,
+                    duration_regex, msg_max_days, unit_max_count)
 
 VARIANTS = ("launcher", "plugin")
 
@@ -34,6 +35,25 @@ from .config import FORM_SELECT_MAX  # noqa: E402  (re-exported; 30, SailPoint's
 
 # Form field keys (also the plugin's trigger input names).
 F_PEOPLE, F_ITEMS, F_APPROVER, F_INC, F_JUSTIFICATION = "people", "items", "approver", "inc", "justification"
+# Launcher form: temporary access (only when the config offers durations on the Launcher).
+F_ACCESS_TYPE, F_DURATION, F_DURATION_UNIT = "accessType", "duration", "durationUnit"
+UNIT_OPTION_LABELS = {"HOURS": "Hours", "DAYS": "Days", "WEEKS": "Weeks", "MONTHS": "Months"}
+
+# Plugin trigger input (CONTRACTS section 3); every field is always present.
+PLUGIN_INPUT = ("people", "items", "approverId", "requesterId", "inc", "justification",
+                "part", "parts", "partLabel", "removeDuration", "accessLabel")
+
+
+def launcher_duration_units(cfg: Config) -> tuple[str, ...]:
+    """Units the Launcher form offers: the configured ones that fit `maxDays` at least once
+    (with maxDays 5, a week can never be chosen, so it isn't offered)."""
+    if "duration" not in cfg.launcher_temporary_modes:
+        return ()
+    return tuple(u for u in cfg.temporary_units if unit_max_count(u, cfg.temporary_max_days) != 0)
+
+
+def launcher_offers_temporary(cfg: Config) -> bool:
+    return bool(launcher_duration_units(cfg))
 
 
 def _owner(owner_id: str, owner_name: str | None = None) -> dict[str, Any]:
@@ -68,6 +88,34 @@ def bulk_form(cfg: Config, owner_id: str, options: list[dict[str, Any]]) -> dict
          "config": {"label": "Business justification", "rows": 3,
                     "helpText": "Shown to the approver and stored on every access request."}},
     ]
+    conditions: list[dict[str, Any]] = []
+    units = launcher_duration_units(cfg)
+    if units:
+        limit = f" Up to {cfg.temporary_max_days} days." if cfg.temporary_max_days else ""
+        elements += [
+            # A TOGGLE gives a real boolean (a SELECT may arrive as a one-item list).
+            {"id": "accessType", "key": F_ACCESS_TYPE, "elementType": "TOGGLE", "validations": [],
+             "config": {"label": "Access duration", "falseLabel": "Permanent", "trueLabel": "Temporary", "default": False,
+                        "helpText": "Temporary access is removed automatically when the duration ends."}},
+            # Not REQUIRED: hidden while Permanent. The workflow checks it again before the approval.
+            {"id": "duration", "key": F_DURATION, "elementType": "TEXT",
+             "validations": [{"validationType": "REGEX",
+                              "config": {"regex": "^([1-9][0-9]*)?$",
+                                         "message": "Enter the duration as a whole number of 1 or more."}}],
+             "config": {"label": "Duration", "placeholder": "30",
+                        "helpText": "How long the access lasts, as a whole number." + limit}},
+            # Option values are Manage Access duration suffixes, so the workflow builds "30d" by concatenation.
+            {"id": "durationUnit", "key": F_DURATION_UNIT, "elementType": "SELECT", "validations": [],
+             "config": {"label": "Unit", "maximum": 1, "forceSelect": True,
+                        "dataSource": {"dataSourceType": "STATIC", "config": {"options": [
+                            {"label": UNIT_OPTION_LABELS[u], "value": DURATION_UNITS[u]} for u in units]}}}},
+        ]
+        # Same shape the form builder writes for "hide when a toggle is off".
+        conditions = [{"ruleOperator": "AND",
+                       "rules": [{"sourceType": "ELEMENT", "source": F_ACCESS_TYPE, "operator": "EQ",
+                                  "valueType": "BOOLEAN", "value": "false"}],
+                       "effects": [{"effectType": "HIDE", "config": {"element": "duration"}},
+                                   {"effectType": "HIDE", "config": {"element": "durationUnit"}}]}]
     return {
         "name": cfg.form_name,
         "description": f"{cfg.prefix}: request access for several people at once, approved by one person, "
@@ -76,20 +124,33 @@ def bulk_form(cfg: Config, owner_id: str, options: list[dict[str, Any]]) -> dict
         "formInput": [],
         "formElements": [{"id": "section", "elementType": "SECTION",
                           "config": {"label": "Bulk access request", "formElements": elements}}],
+        "formConditions": conditions,
     }
 
 
 # ───────────────────────────────────────────────────────────── workflow ──
+# The Launcher keeps its access choice in workflow variables. SailPoint only lets
+# "Update Variable" change variables of a step whose name starts with "Define Variable"
+# (verified live), and a variable can't be defined as a literal "" -- so it is defined as
+# "permanent" and a replace transform empties it.
+DEFINE_ACCESS = "Define Variable Access"
+ACCESS_VARS = "$.defineVariableAccess"
+
+
 def _paths(variant: str) -> dict[str, str]:
     if variant == "launcher":
         base = "$.interactiveForm.formData"
         return {"people": f"{base}.{F_PEOPLE}", "items": f"{base}.{F_ITEMS}", "approver": f"{base}.{F_APPROVER}",
                 "inc": f"{base}.{F_INC}", "justification": f"{base}.{F_JUSTIFICATION}",
-                "requester": "$.trigger.launchedBy.id"}
+                "requester": "$.trigger.launchedBy.id",
+                "accessType": f"{base}.{F_ACCESS_TYPE}", "duration": f"{base}.{F_DURATION}",
+                "durationUnit": f"{base}.{F_DURATION_UNIT}",
+                "removeDuration": f"{ACCESS_VARS}.removeDuration", "accessLabel": f"{ACCESS_VARS}.accessLabel"}
     if variant == "plugin":
         return {"people": "$.trigger.people", "items": "$.trigger.items", "approver": "$.trigger.approverId",
                 "inc": "$.trigger.inc", "justification": "$.trigger.justification",
-                "requester": "$.trigger.requesterId"}
+                "requester": "$.trigger.requesterId", "partLabel": "$.trigger.partLabel",
+                "removeDuration": "$.trigger.removeDuration", "accessLabel": "$.trigger.accessLabel"}
     raise ValueError(f"variant must be one of {VARIANTS}")
 
 
@@ -106,7 +167,8 @@ def _failure() -> dict[str, Any]:
     # Failure end steps carry failureName/description at the top level (validator error e300 otherwise).
     return {"actionId": "sp:operator-failure", "type": "failure", "displayName": "",
             "failureName": "Bulk request rejected",
-            "description": "Stopped before approval: the approver was the requester, or the INC number was invalid."}
+            "description": "Stopped before approval: the approver was the requester, or the INC number "
+                           "or the temporary access duration was invalid."}
 
 
 def _email(cfg: Config, subject: str, body: str, *, cc_approver: bool) -> dict[str, Any]:
@@ -120,14 +182,33 @@ def _email(cfg: Config, subject: str, body: str, *, cc_approver: bool) -> dict[s
     return {"actionId": "sp:send-email", "type": "action", "versionNumber": 2, "attributes": attrs}
 
 
+def _choice(display: str, comparator: str, a: str, b: Any, yes: str, no: str, *,
+            action: str = "sp:compare-strings") -> dict[str, Any]:
+    return {"actionId": action, "type": "choice", "displayName": display,
+            "choiceList": [{"comparator": comparator, "variableA.$": a, "variableB": b, "nextStep": yes}],
+            "defaultStep": no}
+
+
+def plugin_duration_regex(cfg: Config) -> str:
+    """What the plugin may send as `removeDuration`: "" (permanent), a duration in the configured
+    units, or hours (an end date is sent as hours), all within maxDays."""
+    modes = cfg.plugin_temporary_modes
+    units = list(cfg.temporary_units) if "duration" in modes else []
+    if "endDate" in modes and "HOURS" not in units:
+        units.insert(0, "HOURS")
+    return duration_regex(units, cfg.temporary_max_days, allow_empty=True)
+
+
 def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str | None = None,
                   form_id: str | None = None, workflow_id: str | None = None) -> dict[str, Any]:
     """The bulk-request workflow. `workflow_id` (known after creation) scopes the launcher trigger."""
     p = _paths(variant)
     inc, who, appr = _t(p["inc"]), _t("$.getRequester.attributes.displayName"), _t("$.getApprover.attributes.displayName")
-    summary = f"INC {inc} · requested by {who} · approver {appr}"
+    part = _t(p["partLabel"]) if "partLabel" in p else ""     # the Launcher is always one part
+    label = _t(p["accessLabel"])
     live = cfg.live
     mode_note = "" if live else " (DRY RUN: nothing was requested)"
+    temporary_units = launcher_duration_units(cfg) if variant == "launcher" else ()
 
     steps: dict[str, Any] = {}
     start = "Get Requester"
@@ -149,17 +230,14 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
     steps["Get Approver"] = {"actionId": "sp:get-identity", "type": "action", "versionNumber": 2,
                              "displayName": "Approver", "attributes": {"id.$": p["approver"]}, "nextStep": "Approver Is Requester?"}
 
-    # Defence in depth: the form/plugin already enforce both of these.
+    # Defence in depth: the form/plugin already enforce all of these.
     steps["Approver Is Requester?"] = {
         "actionId": "sp:compare-strings", "type": "choice", "displayName": "Approver is the requester?",
         "choiceList": [{"comparator": "StringEquals", "variableA.$": p["approver"], "variableB.$": p["requester"],
                         "nextStep": "Reject Self Approval"}],
         "defaultStep": "INC Valid?"}
-    steps["INC Valid?"] = {
-        "actionId": "sp:compare-strings", "type": "choice", "displayName": "INC number valid?",
-        "choiceList": [{"comparator": "StringMatches", "variableA.$": p["inc"], "variableB": cfg.inc_pattern,
-                        "nextStep": "Notify Pending" if variant == "launcher" else "Bulk Approval"}],
-        "defaultStep": "Reject Bad INC"}
+    after_inc = DEFINE_ACCESS if variant == "launcher" else "Access Valid?"
+    steps["INC Valid?"] = _choice("INC number valid?", "StringMatches", p["inc"], cfg.inc_pattern, after_inc, "Reject Bad INC")
 
     def stop(name: str, title: str, message: str) -> None:
         if variant == "launcher":
@@ -176,19 +254,61 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
     stop("Reject Bad INC", "Invalid INC number", cfg.inc_message)
 
     if variant == "launcher":
+        # The access choice: permanent ("" / "Permanent") unless the form asks for temporary access.
+        steps[DEFINE_ACCESS] = {
+            "attributes": {"id": "sp:define-variable", "variables": [
+                {"name": "removeDuration", "description": "Manage Access removeDuration; empty means permanent",
+                 "variableA": "permanent",
+                 "transforms": [{"id": "sp:transform:replace:string", "input": {"pattern": "permanent", "replacement": ""}}]},
+                {"name": "accessLabel", "description": "Shown on the approval, the access requests and the emails",
+                 "variableA": "Permanent", "transforms": []}]},
+            "type": "Mutation", "displayName": "Access: permanent unless temporary was chosen",
+            "nextStep": "Temporary?" if temporary_units else "Notify Pending"}
+        if temporary_units:
+            suffixes = "|".join(DURATION_UNITS[u] for u in temporary_units)
+            steps["Temporary?"] = _choice("Temporary access?", "BooleanEquals", p["accessType"], True,
+                                          "Duration Valid?", "Notify Pending", action="sp:compare-boolean")
+            steps["Duration Valid?"] = _choice("Duration a whole number?", "StringMatches", p["duration"], "^[1-9][0-9]*$",
+                                               "Unit Valid?", "Reject Bad Duration")
+            steps["Unit Valid?"] = _choice("Duration unit chosen?", "StringMatches", p["durationUnit"], f"^(?:{suffixes})$",
+                                           "Set Temporary Access", "Reject Bad Unit")
+            concat = lambda path: {"id": "sp:transform:concatenate:string", "input": {"variableB.$": path}}  # noqa: E731
+            steps["Set Temporary Access"] = {
+                "attributes": {"id": "sp:update-variable", "variables": [
+                    {"name": f"{ACCESS_VARS}.removeDuration", "description": "", "variableA.$": p["duration"],
+                     "transforms": [concat(p["durationUnit"])]},
+                    {"name": f"{ACCESS_VARS}.accessLabel", "description": "", "variableA": "Temporary: ",
+                     "transforms": [concat(p["duration"]), concat(p["durationUnit"])]}]},
+                "type": "Mutation", "displayName": "Access: temporary",
+                "nextStep": "Within Limit?" if cfg.temporary_max_days else "Notify Pending"}
+            if cfg.temporary_max_days:
+                steps["Within Limit?"] = _choice(f"At most {cfg.temporary_max_days} days?", "StringMatches",
+                                                 p["removeDuration"], duration_regex(temporary_units, cfg.temporary_max_days),
+                                                 "Notify Pending", "Reject Too Long")
+                stop("Reject Too Long", "Duration too long", msg_max_days(cfg.temporary_max_days))
+            stop("Reject Bad Duration", "Invalid duration", MSG_DURATION_NUMBER)
+            stop("Reject Bad Unit", "Choose a unit", MSG_DURATION_UNIT)
+    else:
+        # The plugin validates the choice; an invalid removeDuration would only fail after approval.
+        steps["Access Valid?"] = _choice("Temporary access valid?", "StringMatches", p["removeDuration"],
+                                         plugin_duration_regex(cfg), "Bulk Approval", "Reject Bad Duration")
+        stop("Reject Bad Duration", "Invalid temporary access",
+             "The temporary access duration was not valid, so nothing was sent for approval.")
+
+    if variant == "launcher":
         steps["Notify Pending"] = {
             "actionId": "sp:interactive-message", "type": "action", "versionNumber": 1, "displayName": "Submitted",
             "attributes": {"category": "INFO", "interactiveProcessId.$": "$.trigger.interactiveProcessId",
                            "ownerId.$": "$.trigger.launchedBy.id", "title": f"Sent to {appr} for approval",
-                           "message": f"<p>Your bulk request <b>{inc}</b> is waiting for {appr}. "
+                           "message": f"<p>Your bulk request <b>{inc}</b> ({label}) is waiting for {appr}. "
                                       f"You'll get an email when it's decided{mode_note}.</p>"},
             "nextStep": "Bulk Approval"}
 
     steps["Bulk Approval"] = {
         "actionId": "sp:generic-approval", "type": "action", "versionNumber": 1, "displayName": "One approval for the whole request",
         "attributes": {
-            "name": f"Bulk access {inc}",
-            "description": f"{cfg.prefix} bulk access request {inc} from {who}",
+            "name": f"Bulk access {inc}{part}",
+            "description": f"{cfg.prefix} bulk access request {inc}{part} from {who} · {label}",
             "comments": f"{inc}: {_t(p['justification'])}",
             "requestedBy": "IDENTITY", "byIdentity.$": p["requester"],
             "requestedFor": "IDENTITY", "forIdentity.$": p["requester"],
@@ -196,11 +316,8 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
             "approvalReminder": "false", "approvalTimeout": cfg.approval_timeout_days,
             "approvalActionAtTimeout": cfg.approval_action_at_timeout, "priority": cfg.approval_priority},
         "nextStep": "Approved?"}
-    steps["Approved?"] = {
-        "actionId": "sp:compare-strings", "type": "choice", "displayName": "Approved?",
-        "choiceList": [{"comparator": "StringEquals", "variableA.$": "$.bulkApproval.status", "variableB": "APPROVED",
-                        "nextStep": "Request Access" if live else "Email Approved"}],
-        "defaultStep": "Email Denied"}
+    steps["Approved?"] = _choice("Approved?", "StringEquals", "$.bulkApproval.status", "APPROVED",
+                                 "Request Access" if live else "Email Approved", "Email Denied")
 
     if live:
         # One loop over the people; each iteration requests every chosen item for one
@@ -211,28 +328,34 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
             return "$.loop.context" + path[1:]
         loop_comment = (f"{_t(in_loop(p['inc']))} | Bulk access request by "
                         f"{_t(in_loop('$.getRequester.attributes.displayName'))} | Approved by "
-                        f"{_t(in_loop('$.getApprover.attributes.displayName'))} | {_t(in_loop(p['justification']))}")
+                        f"{_t(in_loop('$.getApprover.attributes.displayName'))} | {_t(in_loop(p['accessLabel']))} | "
+                        f"{_t(in_loop(p['justification']))}")
         steps["Request Access"] = {
             "actionId": "sp:loop:iterator", "type": "action", "versionNumber": 1, "displayName": "Request access per person",
             "attributes": {"input.$": p["people"], "context.$": "$", "start": "Manage Access",
                            "steps": {"Manage Access": {
-                               "actionId": "sp:access:manage", "type": "action", "versionNumber": 1,
+                               # v2 has removeDuration ("30d", "2h", ...); "" means permanent.
+                               "actionId": "sp:access:manage", "type": "action", "versionNumber": 2,
                                "attributes": {"requestType": "GRANT_ACCESS", "addIdentities.$": "$.loop.loopInput",
-                                              "requestedItems.$": in_loop(p["items"]), "comments": loop_comment},
+                                              "requestedItems.$": in_loop(p["items"]),
+                                              "removeDuration.$": in_loop(p["removeDuration"]),
+                                              "comments": loop_comment},
                                "nextStep": "End Step - Success Item"},
                                "End Step - Success Item": {"type": "success"}}},
             "nextStep": "Email Approved"}
 
     steps["Email Approved"] = {
-        **_email(cfg, f"Approved: bulk access {inc}{mode_note}",
-                 f"<p>Your bulk access request <b>{inc}</b> was approved by {appr}.</p>"
+        **_email(cfg, f"Approved: bulk access {inc}{part}{mode_note}",
+                 f"<p>Your bulk access request <b>{inc}</b>{part} was approved by {appr}.</p>"
                  f"<p>{'Access was requested for every person and item on the request.' if live else 'DRY RUN: this installation is in dry-run mode, so nothing was requested.'}</p>"
+                 f"<p>Access: {label}</p>"
                  f"<p>Justification: {_t(p['justification'])}</p>", cc_approver=True),
         "displayName": "Email: approved", "nextStep": "End Step - Success"}
     steps["Email Denied"] = {
-        **_email(cfg, f"Denied: bulk access {inc}",
-                 f"<p>Your bulk access request <b>{inc}</b> was not approved by {appr} "
-                 f"(status: {_t('$.bulkApproval.status')}). Nothing was requested.</p>", cc_approver=True),
+        **_email(cfg, f"Denied: bulk access {inc}{part}",
+                 f"<p>Your bulk access request <b>{inc}</b>{part} was not approved by {appr} "
+                 f"(status: {_t('$.bulkApproval.status')}). Nothing was requested.</p>"
+                 f"<p>Access asked for: {label}</p>", cc_approver=True),
         "displayName": "Email: denied", "nextStep": "End Step - Success"}
     steps["End Step - Success"] = _success()
     steps["End Step - Rejected"] = _failure()
@@ -246,10 +369,13 @@ def bulk_workflow(cfg: Config, *, variant: str, owner_id: str, owner_name: str |
                        "Launcher. Installed by bulk-access-request/launcher/install.py.")
         name = cfg.launcher_workflow_name
     else:
-        trigger = {"type": "EXTERNAL", "attributes": {"name": f"{cfg.plugin_alias}-workflow",
-                                                      "description": "Input: people[], items[], approverId, requesterId, inc, justification"}}
+        trigger = {"type": "EXTERNAL", "attributes": {
+            "name": f"{cfg.plugin_alias}-workflow",
+            "description": "Input: people[], items[], approverId, requesterId, inc, justification, part, parts, "
+                           "partLabel, removeDuration (\"\" = permanent), accessLabel"}}
         description = (f"{cfg.prefix} Bulk Access Request for the UI plugin ({cfg.mode}). Started through the "
-                       "workflow test endpoint, so it must stay DISABLED. Installed by bulk-access-request/plugin/install.py.")
+                       "workflow test endpoint, once per part of up to 250 people, so it must stay DISABLED. "
+                       "Installed by bulk-access-request/plugin/install.py.")
         name = cfg.plugin_workflow_name
 
     return {"name": name, "description": description[:APPROVAL_DESCRIPTION_MAX * 3],
@@ -294,4 +420,5 @@ def pretty(obj: Any) -> str:
     return json.dumps(obj, indent=2, sort_keys=False)
 
 
-__all__ = ["bulk_form", "bulk_workflow", "bulk_launcher", "VARIANTS", "APPROVAL_COMMENT_MAX"]
+__all__ = ["bulk_form", "bulk_workflow", "bulk_launcher", "VARIANTS", "APPROVAL_COMMENT_MAX", "PLUGIN_INPUT",
+           "launcher_duration_units", "launcher_offers_temporary", "plugin_duration_regex"]
