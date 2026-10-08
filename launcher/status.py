@@ -14,6 +14,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "core"))
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 from bulkaccess import config as config_mod  # noqa: E402
+from bulkaccess import definitions  # noqa: E402
 from bulkaccess.tenant import Tenant, TenantError  # noqa: E402
 import install  # noqa: E402
 
@@ -29,9 +30,12 @@ def main(argv=None) -> int:
     ok = True
     form = install.find_form(t, cfg.form_name)
     if form:
-        opts = form["formElements"][0]["config"]["formElements"][1]["config"]["dataSource"]["config"]["options"]
-        print(f"[ok] Form      {form['id']}  {cfg.form_name}  ({len(opts)} catalog item(s): "
-              f"{', '.join(o['label'] for o in opts[:5])}{'…' if len(opts) > 5 else ''})")
+        names = [i.get("name") for i in install.catalog_items(form)]
+        temporary = install.form_element(form, "accessType") is not None
+        print(f"[ok] Form      {form['id']}  {cfg.form_name}  ({len(names)} catalog item(s): "
+              f"{', '.join(names[:5])}{'…' if len(names) > 5 else ''}; temporary access {'on' if temporary else 'off'})")
+        if temporary != definitions.launcher_offers_temporary(cfg):
+            print("     note: the form's temporary access fields differ from the config; re-run install.py.")
     else:
         ok = False; print(f"[--] Form      missing: {cfg.form_name}")
 
@@ -39,11 +43,14 @@ def main(argv=None) -> int:
     if wf:
         full = t.call("GET", f"/v2025/workflows/{wf['id']}")
         live = "Request Access" in full["definition"]["steps"]
+        manage = (full["definition"]["steps"].get("Request Access") or {}).get("attributes", {}).get("steps", {}).get("Manage Access", {})
         scoped = "filter.$" in (full.get("trigger") or {}).get("attributes", {})
         print(f"[{'ok' if full.get('enabled') and scoped else '!!'}] Workflow  {wf['id']}  {cfg.launcher_workflow_name}  "
               f"(enabled={full.get('enabled')}, installed mode={'live' if live else 'dry-run'}, trigger scoped={scoped})")
         if live != cfg.live:
             print("     note: installed mode differs from the config; re-run install.py to apply the config.")
+        if live and manage.get("versionNumber") != 2:
+            print("     note: Manage Access is not version 2 (no temporary access); re-run install.py.")
         runs = t.call("GET", f"/v2025/workflows/{wf['id']}/executions?limit=5") or []
         for r in runs:
             print(f"     run {r.get('id')}  {r.get('status'):9}  {r.get('startTime', '')[:19]}")

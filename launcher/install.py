@@ -73,6 +73,25 @@ def find_form(tenant: Tenant, name: str) -> dict | None:
     return next((f for f in res.get("results") or [] if f.get("name") == name), None)
 
 
+def form_element(form: dict, key: str) -> dict | None:
+    """The form element with technical key `key` (searching inside sections)."""
+    def walk(elements):
+        for el in elements or []:
+            if el.get("key") == key:
+                return el
+            found = walk((el.get("config") or {}).get("formElements"))
+            if found:
+                return found
+        return None
+    return walk(form.get("formElements"))
+
+
+def catalog_items(form: dict) -> list[dict]:
+    """The access objects the form offers (the values of its STATIC `items` options)."""
+    el = form_element(form, definitions.F_ITEMS) or {}
+    return [o["value"] for o in (((el.get("config") or {}).get("dataSource") or {}).get("config") or {}).get("options") or []]
+
+
 def find_workflow(tenant: Tenant, name: str) -> dict | None:
     return next((w for w in tenant.call("GET", f"{WORKFLOWS}?limit=250") or [] if w.get("name") == name), None)
 
@@ -108,6 +127,10 @@ def main(argv: list[str] | None = None) -> int:
     me = tenant.me()
     owner_id = cfg.owner_id or me["id"]
     print(f"Tenant {tenant.tenant_name} · prefix {cfg.prefix!r} · mode {cfg.mode} · owner {me.get('name')}")
+    units = definitions.launcher_duration_units(cfg)
+    print("Temporary access on the Launcher: "
+          + (f"durations in {', '.join(u.lower() for u in units)}"
+             + (f", at most {cfg.temporary_max_days} days" if cfg.temporary_max_days else "") if units else "off"))
 
     options = rules.catalog_options(cfg, requestable_objects(tenant, cfg))
     print(f"Catalog: {len(options)} requestable item(s) offered"
@@ -131,6 +154,7 @@ def main(argv: list[str] | None = None) -> int:
     if form:
         tenant.call("PATCH", f"{FORMS}/{form['id']}", [
             {"op": "replace", "path": "/formElements", "value": form_body["formElements"]},
+            {"op": "replace", "path": "/formConditions", "value": form_body["formConditions"]},
             {"op": "replace", "path": "/description", "value": form_body["description"]},
         ], content_type="application/json-patch+json")
         print(f"Form updated:     {form['id']}  {cfg.form_name}")
