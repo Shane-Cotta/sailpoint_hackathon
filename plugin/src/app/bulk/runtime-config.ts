@@ -9,6 +9,28 @@ export type ItemType = 'ACCESS_PROFILE' | 'ROLE' | 'ENTITLEMENT';
 
 export const ITEM_TYPES: readonly ItemType[] = ['ACCESS_PROFILE', 'ROLE', 'ENTITLEMENT'];
 
+/** How a requester may make access temporary (config.TEMPORARY_MODES). */
+export type TemporaryMode = 'duration' | 'endDate';
+export const TEMPORARY_MODES: readonly TemporaryMode[] = ['duration', 'endDate'];
+
+/** Units of a temporary-access duration (config.DURATION_UNITS). */
+export type DurationUnit = 'HOURS' | 'DAYS' | 'WEEKS' | 'MONTHS';
+export const DURATION_UNIT_NAMES: readonly DurationUnit[] = ['HOURS', 'DAYS', 'WEEKS', 'MONTHS'];
+
+/**
+ * SailPoint's workflow Loop rejects more than 250 iterations (config.LOOP_MAX, verified
+ * live), so one workflow run, and so one approval, covers at most this many people.
+ */
+export const LOOP_MAX = 250;
+
+export interface TemporaryConfig {
+  enabled: boolean;
+  allow: TemporaryMode[];
+  units: DurationUnit[];
+  /** null = no cap. */
+  maxDays: number | null;
+}
+
 export interface RuntimeConfig {
   /** Names every object install.py created, e.g. "ACME". */
   prefix: string;
@@ -20,12 +42,16 @@ export interface RuntimeConfig {
   incPattern: string;
   incMessage: string;
   incExample: string;
-  peopleMax: number;
+  /** null = no limit. */
+  peopleMax: number | null;
+  /** People per workflow run (one approval each), 1..LOOP_MAX. */
+  partSize: number;
   itemsMax: number;
   catalogTypes: ItemType[];
   nameStartsWith: string | null;
   /** Shown in the banner: where people without ORG_ADMIN should go instead. */
   launcherName: string;
+  temporary: TemporaryConfig;
 }
 
 export const DEFAULT_CONFIG: RuntimeConfig = {
@@ -36,11 +62,15 @@ export const DEFAULT_CONFIG: RuntimeConfig = {
   incPattern: '^INC\\d{7}$',
   incMessage: 'Enter a ServiceNow incident number: INC followed by 7 digits, e.g. INC0012345.',
   incExample: 'INC0012345',
-  peopleMax: 50,
+  peopleMax: null,
+  partSize: LOOP_MAX,
   itemsMax: 25,
   catalogTypes: [...ITEM_TYPES],
   nameStartsWith: null,
   launcherName: 'Bulk Access Request',
+  // Off when the file has no `temporary` block: that file comes from an older install,
+  // whose workflow would ignore the duration and grant the access permanently.
+  temporary: { enabled: false, allow: [...TEMPORARY_MODES], units: [...DURATION_UNIT_NAMES], maxDays: null },
 };
 
 export class RuntimeConfigError extends Error {}
@@ -65,8 +95,16 @@ export function parseRuntimeConfig(raw: unknown): RuntimeConfig {
   cfg.incPattern = str('incPattern') || cfg.incPattern;
   cfg.incMessage = str('incMessage') || cfg.incMessage;
   cfg.incExample = str('incExample') || cfg.incExample;
-  cfg.peopleMax = num('peopleMax') ?? cfg.peopleMax;
+  cfg.peopleMax = 'peopleMax' in data ? optionalWhole(data['peopleMax'], 'peopleMax') : cfg.peopleMax;
+  if ('partSize' in data) {
+    const size = data['partSize'];
+    if (!isWhole(size) || size < 1 || size > LOOP_MAX) {
+      throw new RuntimeConfigError(`partSize must be between 1 and ${LOOP_MAX} (SailPoint's workflow loop limit).`);
+    }
+    cfg.partSize = size;
+  }
   cfg.itemsMax = num('itemsMax') ?? cfg.itemsMax;
+  cfg.temporary = parseTemporary(data['temporary']);
   cfg.nameStartsWith = str('nameStartsWith') || null;
   cfg.launcherName = str('launcherName') || cfg.launcherName;
   const types = Array.isArray(data['catalogTypes']) ? (data['catalogTypes'] as unknown[]) : null;
@@ -89,10 +127,44 @@ export function parseRuntimeConfig(raw: unknown): RuntimeConfig {
   if (cfg.itemsMax < 1 || cfg.itemsMax > 25) {
     throw new RuntimeConfigError('itemsMax must be between 1 and 25 (SailPoint\'s per-request limit).');
   }
-  if (cfg.peopleMax < 1 || cfg.peopleMax > 250) {
-    throw new RuntimeConfigError('peopleMax must be between 1 and 250.');
-  }
   return cfg;
+}
+
+function isWhole(v: unknown): v is number {
+  return typeof v === 'number' && Number.isInteger(v);
+}
+
+/** null (no limit) or a whole number of at least 1. */
+function optionalWhole(v: unknown, name: string): number | null {
+  if (v === null) return null;
+  if (!isWhole(v) || v < 1) throw new RuntimeConfigError(`${name} must be null (no limit) or a whole number of at least 1.`);
+  return v;
+}
+
+function parseTemporary(raw: unknown): TemporaryConfig {
+  const fallback = DEFAULT_CONFIG.temporary;
+  if (raw === undefined || raw === null) return { ...fallback, allow: [...fallback.allow], units: [...fallback.units] };
+  if (typeof raw !== 'object' || Array.isArray(raw)) throw new RuntimeConfigError('temporary must be an object.');
+  const t = raw as Record<string, unknown>;
+  if (t['enabled'] !== undefined && typeof t['enabled'] !== 'boolean') {
+    throw new RuntimeConfigError('temporary.enabled must be true or false.');
+  }
+  const list = <T extends string>(key: string, allowed: readonly T[]): T[] => {
+    const v = t[key];
+    if (v === undefined || v === null) return [...allowed];
+    const bad = Array.isArray(v) ? v.filter((x) => !allowed.includes(x as T)) : [v];
+    if (bad.length) {
+      throw new RuntimeConfigError(`temporary.${key} may only contain ${allowed.join(', ')} (got ${bad.join(', ')}).`);
+    }
+    return [...new Set(v as T[])];
+  };
+  return {
+    // A temporary block is only written by installs whose workflow honours it (Python's default is on).
+    enabled: t['enabled'] === undefined ? true : (t['enabled'] as boolean),
+    allow: list('allow', TEMPORARY_MODES),
+    units: list('units', DURATION_UNIT_NAMES),
+    maxDays: t['maxDays'] === undefined ? null : optionalWhole(t['maxDays'], 'temporary.maxDays'),
+  };
 }
 
 /** Fetch the config shipped next to index.html (relative URL: the bundle is served from a CDN path). */

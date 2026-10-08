@@ -1,9 +1,9 @@
-import { Component, inject, OnDestroy, signal } from '@angular/core';
+import { Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
-import { ChipModule } from 'primeng/chip';
 import { InputTextModule } from 'primeng/inputtext';
 import { MessageModule } from 'primeng/message';
+import { ProgressBarModule } from 'primeng/progressbar';
 import { TextareaModule } from 'primeng/textarea';
 
 import { BulkApiService, splitPasted, type Person } from '../../bulk/bulk-api.service';
@@ -11,10 +11,14 @@ import { BulkConfigService } from '../../bulk/bulk-config.service';
 import { describeError } from '../../bulk/errors';
 import { RequestStore } from '../../bulk/request-store';
 
+const PAGE_SIZE = 24;
+/** Show at most this many not-found entries or ambiguous pickers at once. */
+const SHOW_MAX = 10;
+
 /** Step 1: who needs the access. Type-ahead search, or paste a list of IDs, usernames or emails. */
 @Component({
   selector: 'app-people-step',
-  imports: [ButtonModule, ChipModule, FormsModule, InputTextModule, MessageModule, TextareaModule],
+  imports: [ButtonModule, FormsModule, InputTextModule, MessageModule, ProgressBarModule, TextareaModule],
   templateUrl: './people-step.component.html',
   styleUrl: './steps.scss',
 })
@@ -25,7 +29,29 @@ export class PeopleStepComponent implements OnDestroy {
 
   protected readonly searching = signal(false);
   protected readonly resolving = signal(false);
+  /** Pasted-list lookup progress: entries looked up so far, of how many. */
+  protected readonly progress = signal<{ done: number; total: number } | null>(null);
+  /** How many of the last pasted list were added (fewer than found when the people limit cut it off). */
+  protected readonly pasteAdded = signal(0);
   protected readonly error = signal('');
+
+  /** Chosen people are shown as a filtered, paged list (never 1,000 chips). */
+  protected readonly pageSize = PAGE_SIZE;
+  protected readonly shownLimit = SHOW_MAX;
+  protected readonly chosenMatches = computed(() => {
+    const q = this.store.chosenFilter().trim().toLowerCase();
+    const all = this.store.people();
+    return q ? all.filter((p) => `${p.name} ${p.email ?? ''} ${p.detail ?? ''}`.toLowerCase().includes(q)) : all;
+  });
+  protected readonly pageCount = computed(() => Math.max(1, Math.ceil(this.chosenMatches().length / PAGE_SIZE)));
+  protected readonly page = computed(() => Math.min(this.store.chosenPage(), this.pageCount() - 1));
+  protected readonly chosenPage = computed(() => this.chosenMatches().slice(this.page() * PAGE_SIZE, (this.page() + 1) * PAGE_SIZE));
+  protected readonly pageEnd = computed(() => Math.min((this.page() + 1) * PAGE_SIZE, this.chosenMatches().length));
+  protected readonly partsCount = computed(() => this.store.parts().length);
+  protected readonly percent = computed(() => {
+    const p = this.progress();
+    return p && p.total ? Math.round((100 * p.done) / p.total) : 0;
+  });
   private debounce: ReturnType<typeof setTimeout> | null = null;
   private searchSeq = 0;
 
@@ -58,7 +84,21 @@ export class PeopleStepComponent implements OnDestroy {
   }
 
   protected get full(): boolean {
-    return this.store.people().length >= this.cfg().peopleMax;
+    const max = this.cfg().peopleMax;
+    return max !== null && this.store.people().length >= max;
+  }
+
+  protected onChosenFilter(value: string): void {
+    this.store.chosenFilter.set(value);
+    this.store.chosenPage.set(0);
+  }
+
+  protected goPage(delta: number): void {
+    this.store.chosenPage.set(Math.max(0, Math.min(this.pageCount() - 1, this.page() + delta)));
+  }
+
+  protected first<T>(list: T[], n = SHOW_MAX): T[] {
+    return list.slice(0, n);
   }
 
   protected add(p: Person): void {
@@ -70,9 +110,10 @@ export class PeopleStepComponent implements OnDestroy {
     if (!tokens.length) return;
     this.resolving.set(true);
     this.error.set('');
+    this.progress.set({ done: 0, total: tokens.length });
     try {
-      const result = await this.api.resolvePeople(tokens);
-      this.store.addPeople(result.resolved);
+      const result = await this.api.resolvePeople(tokens, (done, total) => this.progress.set({ done, total }));
+      this.pasteAdded.set(this.store.addPeople(result.resolved));
       this.store.resolution.set(result);
       // Leave only what still needs attention in the box.
       this.store.pasteText.set([...result.unresolved, ...result.ambiguous.map((a) => a.token)].join('\n'));
@@ -80,6 +121,7 @@ export class PeopleStepComponent implements OnDestroy {
       this.error.set(describeError(err));
     } finally {
       this.resolving.set(false);
+      this.progress.set(null);
     }
   }
 

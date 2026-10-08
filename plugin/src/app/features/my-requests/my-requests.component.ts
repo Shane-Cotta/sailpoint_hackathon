@@ -10,7 +10,10 @@ import { TagModule } from 'primeng/tag';
 import { BulkApiService } from '../../bulk/bulk-api.service';
 import { BulkConfigService } from '../../bulk/bulk-config.service';
 import { describeError } from '../../bulk/errors';
-import { groupByInc, requestStateLabel, statusLabel, type BulkGroup } from '../../bulk/my-requests';
+import { groupByInc, requestStateLabel, statusLabel, type BulkGroup, type RequestRow } from '../../bulk/my-requests';
+
+/** Access-request rows shown per group before "Show all" (a 600-person request has 600+). */
+const ROWS_SHOWN = 10;
 
 /** The My bulk requests tab: the signed-in user's bulk requests, grouped by INC. */
 @Component({
@@ -30,6 +33,7 @@ export class MyRequestsComponent {
   protected readonly filter = signal('');
   protected readonly open = signal<Set<string>>(new Set());
   protected readonly loadedAt = signal<Date | null>(null);
+  private readonly expanded = signal<Set<string>>(new Set());
 
   protected readonly shown = computed(() => {
     const q = this.filter().trim().toUpperCase();
@@ -40,7 +44,7 @@ export class MyRequestsComponent {
     return {
       total: all.length,
       pending: all.filter((g) => g.status === 'PENDING').length,
-      approved: all.filter((g) => g.status === 'APPROVED' || g.status === 'REQUESTED').length,
+      approved: all.filter((g) => g.status === 'APPROVED' || g.status === 'REQUESTED' || g.status === 'MIXED').length,
       denied: all.filter((g) => g.status === 'REJECTED').length,
     };
   });
@@ -79,6 +83,29 @@ export class MyRequestsComponent {
     // Open the newest request so the page shows detail straight away.
     if (groups.length && !this.open().size) this.open.set(new Set([groups[0].inc]));
     this.loading.set(false);
+  }
+
+  protected hasParts(g: BulkGroup): boolean {
+    return g.submissions.some((s) => s.part !== null);
+  }
+
+  /** The latest submission's parts in order (1/3, 2/3, 3/3), then earlier attempts, newest first. */
+  protected approvalRows(g: BulkGroup): BulkGroup['submissions'] {
+    return [...g.latest, ...g.submissions.filter((s) => !g.latest.includes(s))];
+  }
+
+  protected shownRequests(g: BulkGroup): RequestRow[] {
+    return this.expanded().has(g.inc) ? g.requests : g.requests.slice(0, ROWS_SHOWN);
+  }
+
+  protected showAll(inc: string): void {
+    this.expanded.update((s) => new Set(s).add(inc));
+  }
+
+  /** A removeDate as a day ("7 Nov 2026"). */
+  protected day(iso: string): string {
+    const d = new Date(iso);
+    return Number.isNaN(d.getTime()) ? iso : d.toLocaleDateString(undefined, { dateStyle: 'medium' });
   }
 
   protected toggle(inc: string): void {

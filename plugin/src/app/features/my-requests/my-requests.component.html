@@ -26,6 +26,9 @@
         <button type="button" class="group__head" (click)="toggle(g.inc)" [attr.aria-expanded]="open().has(g.inc)">
           <span class="group__inc mono">{{ g.inc }}</span>
           <p-tag [severity]="statusLabel(g.status).severity" [value]="statusLabel(g.status).label" />
+          @if (g.latest.length > 1) {
+            <span class="group__parts">{{ g.approvedParts }} of {{ g.latest.length }} approved</span>
+          }
           <span class="group__meta">
             @if (g.submissions[0]; as s) { Approver: {{ s.approver }} · }
             @if (g.requests.length) { {{ g.people }} {{ g.people === 1 ? 'person' : 'people' }} × {{ g.items }} {{ g.items === 1 ? 'item' : 'items' }} · }
@@ -37,12 +40,16 @@
         @if (open().has(g.inc)) {
           <div class="group__body">
             @if (g.submissions.length) {
-              <h4 class="group__sub">Approval{{ g.submissions.length > 1 ? 's (' + g.submissions.length + ' submissions)' : '' }}</h4>
+              <h4 class="group__sub">
+                @if (g.latest.length > 1) { Approvals ({{ g.latest.length }} parts, same INC) }
+                @else { Approval{{ g.submissions.length > 1 ? 's (' + g.submissions.length + ' submissions)' : '' }} }
+              </h4>
               <table class="mini">
-                <thead><tr><th>Submitted</th><th>Approver</th><th>Decision</th><th>Decided</th></tr></thead>
+                <thead><tr>@if (hasParts(g)) { <th>Part</th> }<th>Submitted</th><th>Approver</th><th>Decision</th><th>Decided</th></tr></thead>
                 <tbody>
-                  @for (s of g.submissions; track s.approvalId) {
-                    <tr>
+                  @for (s of approvalRows(g); track s.approvalId) {
+                    <tr [class.row--old]="!g.latest.includes(s)">
+                      @if (hasParts(g)) { <td>{{ s.part ? s.part + '/' + s.parts : '–' }}</td> }
                       <td>{{ date(s.created) }}</td>
                       <td>{{ s.approver }}</td>
                       <td><p-tag [severity]="statusLabel(s.status).severity" [value]="statusLabel(s.status).label" />
@@ -57,18 +64,25 @@
             <h4 class="group__sub">Access requests</h4>
             @if (g.requests.length) {
               <table class="mini">
-                <thead><tr><th>Person</th><th>Item</th><th>Status</th><th>Requested</th></tr></thead>
+                <thead><tr><th>Person</th><th>Item</th><th>Status</th><th>Access</th><th>Requested</th></tr></thead>
                 <tbody>
-                  @for (r of g.requests; track $index) {
+                  @for (r of shownRequests(g); track $index) {
                     <tr>
                       <td>{{ r.person }}</td>
                       <td>{{ r.item }}</td>
                       <td><p-tag [severity]="requestStateLabel(r.state).severity" [value]="requestStateLabel(r.state).label" /></td>
+                      <td>
+                        @if (r.removeDate) { <span class="temp">Temporary until {{ day(r.removeDate) }}</span> }
+                        @else { <span class="muted">Permanent</span> }
+                      </td>
                       <td>{{ date(r.created) }}</td>
                     </tr>
                   }
                 </tbody>
               </table>
+              @if (g.requests.length > shownRequests(g).length) {
+                <p-button [label]="'Show all ' + g.requests.length + ' access requests'" size="small" [text]="true" (onClick)="showAll(g.inc)" />
+              }
             } @else {
               <p class="muted">
                 @switch (g.status) {

@@ -25,15 +25,30 @@ export interface Resolution {
   ambiguous: { token: string; matches: Person[] }[];
 }
 
-/** What POST /v3/workflows/{id}/test receives as `input` (the plugin workflow's trigger contract). */
+/**
+ * What POST /v3/workflows/{id}/test receives as `input`: the plugin workflow's trigger
+ * contract (CONTRACTS §3). One run per part; every field is always present.
+ */
 export interface BulkInput {
+  /** 1..partSize identity IDs (at most 250, SailPoint's loop limit). */
   people: string[];
   items: AccessItem[];
   approverId: string;
   requesterId: string;
   inc: string;
   justification: string;
+  /** 1-based part number, the number of parts, and partLabel(part, parts) ("" when parts is 1). */
+  part: number;
+  parts: number;
+  partLabel: string;
+  /** Manage Access v2 removeDuration: "" = permanent, e.g. "30d" or "720h". */
+  removeDuration: string;
+  /** "Permanent", "Temporary: 30 days" or "Temporary: until 2026-11-07". */
+  accessLabel: string;
 }
+
+/** Progress of a pasted-list lookup: tokens looked up so far, out of all of them. */
+export type ResolveProgress = (done: number, total: number) => void;
 
 export interface Execution {
   id: string;
@@ -91,6 +106,8 @@ export interface AccessRequestStatus {
   requestedFor?: { id: string; name?: string };
   requester?: { id: string; name?: string };
   requesterComment?: { comment?: string } | null;
+  /** When temporary access is removed (null or missing = permanent). */
+  removeDate?: string | null;
 }
 
 /** Item access a chosen person already holds or has pending (from requestable-objects?identity-id=). */
@@ -111,10 +128,65 @@ function quoted(value: string): string {
   return `"${value.replace(/["\\]/g, (c) => `\\${c}`)}"`;
 }
 
+/**
+ * Batch sizes for resolving a pasted list. Verified with read-only GETs on a demo tenant:
+ * /v2025/identities takes `id in (…)` (50 IDs ≈ 2 KB of URL) but only `eq` for alias and
+ * email, so words go as an `alias eq … or email eq …` chain; URLs above ~8 KB get HTTP 414.
+ * The list API is search-backed and misses identities not indexed yet, so leftovers are
+ * looked up through their accounts, then (IDs only) one by one.
+ */
+export const RESOLVE_BATCH = 50;
+const FILTER_BUDGET = 4000;   // characters of filter per call, well under the URL limit
+const RESOLVE_CONCURRENCY = 4;
+
 function chunk<T>(list: T[], size: number): T[][] {
   const out: T[][] = [];
   for (let i = 0; i < list.length; i += size) out.push(list.slice(i, i + size));
   return out;
+}
+
+/**
+ * Cut `list` into batches of at most `size`, also keeping each batch's filter text
+ * (terms joined by `sep`) under `budget` characters, so long emails can't overflow the URL.
+ */
+export function batches<T>(list: T[], term: (x: T) => string, sep: string,
+                           budget = FILTER_BUDGET, size = RESOLVE_BATCH): T[][] {
+  const out: T[][] = [];
+  let current: T[] = [];
+  let length = 0;
+  for (const x of list) {
+    const cost = term(x).length + sep.length;
+    if (current.length && (current.length >= size || length + cost > budget)) {
+      out.push(current);
+      current = [];
+      length = 0;
+    }
+    current.push(x);
+    length += cost;
+  }
+  if (current.length) out.push(current);
+  return out;
+}
+
+/** Run `jobs` with at most `concurrency` at a time. */
+export async function pool(jobs: (() => Promise<unknown>)[], concurrency: number): Promise<void> {
+  let next = 0;
+  const worker = async () => {
+    for (let i = next++; i < jobs.length; i = next++) await jobs[i]();
+  };
+  await Promise.all(Array.from({ length: Math.min(concurrency, jobs.length) }, worker));
+}
+
+/** Retry a call SailPoint throttled (HTTP 429), with a short back-off. */
+export async function retry<T>(call: () => Promise<T>, attempts = 3, waitMs = 1500): Promise<T> {
+  for (let i = 1; ; i++) {
+    try {
+      return await call();
+    } catch (err) {
+      if ((err as { status?: number })?.status !== 429 || i >= attempts) throw err;
+      await new Promise((resolve) => setTimeout(resolve, waitMs * i));
+    }
+  }
 }
 
 /** Split a pasted list (newlines, commas, semicolons, tabs) into unique tokens. */
@@ -206,50 +278,89 @@ export class BulkApiService {
   }
 
   /**
-   * Resolve a pasted list of identity IDs, usernames or emails. A token resolves
+   * Resolve a pasted list of identity IDs, usernames or emails, in batches of about
+   * RESOLVE_BATCH per call (so 1,000+ entries take a few dozen calls). A token resolves
    * when exactly one identity matches it; several matches are reported as ambiguous.
+   *
+   *  1. IDs: `/v2025/identities?filters=id in (…)`.
+   *  2. Words: `/v2025/identities?filters=alias eq … or email eq …` (case-insensitive).
+   *  3. Whatever is still unmatched: identity search (name, email) and accounts
+   *     (name, nativeIdentity; identityId for IDs), which also find identities the
+   *     identities list hasn't indexed yet.
+   *  4. IDs still unmatched: GET /v2025/identities/{id}, one by one.
    */
-  async resolvePeople(tokens: string[]): Promise<Resolution> {
+  async resolvePeople(tokens: string[], onProgress?: ResolveProgress): Promise<Resolution> {
     const candidates = new Map<string, Map<string, Person>>(); // token(lower) -> identityId -> person
-    const add = (token: string, p: Person) => {
-      const key = token.toLowerCase();
+    const lower = new Map(tokens.map((t) => [t.toLowerCase(), t]));
+    const add = (key: string, p: Person) => {
       if (!candidates.has(key)) candidates.set(key, new Map());
       candidates.get(key)!.set(p.id, p);
     };
-    const lower = new Map(tokens.map((t) => [t.toLowerCase(), t]));
     const match = (keys: string[], p: Person) => keys.forEach((k) => lower.has(k) && add(k, p));
+    const open = (list: string[]) => list.filter((t) => !candidates.has(t.toLowerCase()));
 
     const ids = tokens.filter((t) => IDENTITY_ID.test(t));
     const words = tokens.filter((t) => !IDENTITY_ID.test(t));
+    const total = tokens.length;
+    let done = 0;
+    const tick = (n: number) => {
+      done = Math.min(total, done + n);
+      onProgress?.(done, total);
+    };
+    onProgress?.(0, total);
 
-    const jobs: Promise<void>[] = ids.map(async (id) => {
+    // 1 + 2: the identities list, the bulk of the work (progress counts these tokens).
+    const idTerm = (id: string) => quoted(id);
+    const wordTerm = (w: string) => `alias eq ${quoted(w)} or email eq ${quoted(w)}`;
+    const jobs: (() => Promise<void>)[] = [
+      ...batches(ids, idTerm, ',').map((part) => () => this.identities(`id in (${part.map(idTerm).join(',')})`)
+        .then((rows) => rows.forEach((r) => match(identityKeys(r), personFromIdentity(r))))
+        .finally(() => tick(part.length))),
+      ...batches(words, wordTerm, ' or ').map((part) => () => this.identities(part.map(wordTerm).join(' or '))
+        .then((rows) => rows.forEach((r) => match(identityKeys(r), personFromIdentity(r))))
+        .finally(() => tick(part.length))),
+    ];
+    await pool(jobs, RESOLVE_CONCURRENCY);
+
+    // 3: fallbacks for what the identities list didn't find.
+    const leftWords = open(words);
+    const leftIds = open(ids);
+    const fallbacks: (() => Promise<void>)[] = [];
+    for (const part of chunk(leftWords, RESOLVE_BATCH)) {
+      const list = part.map(quoted).join(' OR ');
+      fallbacks.push(() => this.plugin.post<Row[]>('/v3/search?limit=250', {
+        indices: ['identities'],
+        query: { query: `name:(${list}) OR email:(${list})` },
+        queryResultFilter: { includes: ['id', 'name', 'displayName', 'email', 'attributes.department'] },
+      }).then((docs) => (docs ?? []).forEach((d) => match(searchKeys(d), personFromSearch(d)))).catch(() => undefined));
+    }
+    for (const part of batches(leftWords, quoted, ',', FILTER_BUDGET / 2)) {
+      const list = part.map(quoted).join(',');
+      fallbacks.push(() => this.accounts(`name in (${list}) or nativeIdentity in (${list})`)
+        .then((accts) => accts.forEach((a) => {
+          const p = personFromAccount(a);
+          if (p) match(accountKeys(a), p);
+        })));
+    }
+    for (const part of batches(leftIds, quoted, ',')) {
+      fallbacks.push(() => this.accounts(`identityId in (${part.map(quoted).join(',')})`)
+        .then((accts) => accts.forEach((a) => {
+          const p = personFromAccount(a);
+          if (p) add(p.id.toLowerCase(), p);
+        })));
+    }
+    await pool(fallbacks, RESOLVE_CONCURRENCY);
+
+    // 4: an ID nobody has an account for yet.
+    await pool(open(ids).map((id) => async () => {
       try {
         const row = await this.plugin.get<Row>(`/v2025/identities/${encodeURIComponent(id)}`);
-        if (row?.['id']) add(id, personFromIdentity(row));
+        if (row?.['id']) add(id.toLowerCase(), personFromIdentity(row));
       } catch {
         /* unknown id: reported as unresolved */
       }
-    });
-    for (const part of chunk(words, 10)) {
-      const filter = part.map((w) => `alias eq ${quoted(w)} or email eq ${quoted(w)}`).join(' or ');
-      jobs.push(this.plugin.get<Row[]>(`/v2025/identities?limit=250&filters=${encodeURIComponent(filter)}`)
-        .then((rows) => (rows ?? []).forEach((r) => match(identityKeys(r), personFromIdentity(r))))
-        .catch(() => undefined));
-      const list = part.map(quoted).join(',');
-      jobs.push(this.plugin.post<Row[]>('/v3/search?limit=250', {
-        indices: ['identities'],
-        query: { query: `name:(${part.map(quoted).join(' OR ')}) OR email:(${part.map(quoted).join(' OR ')})` },
-        queryResultFilter: { includes: ['id', 'name', 'displayName', 'email', 'attributes.department'] },
-      }).then((docs) => (docs ?? []).forEach((d) => match(searchKeys(d), personFromSearch(d))))
-        .catch(() => undefined));
-      jobs.push(this.plugin.get<Row[]>(
-        `/v3/accounts?limit=250&filters=${encodeURIComponent(`name in (${list}) or nativeIdentity in (${list})`)}`,
-      ).then((accts) => (accts ?? []).forEach((a) => {
-        const p = personFromAccount(a);
-        if (p) match(accountKeys(a), p);
-      })).catch(() => undefined));
-    }
-    await Promise.all(jobs);
+    }), RESOLVE_CONCURRENCY);
+    onProgress?.(total, total);
 
     const out: Resolution = { resolved: [], unresolved: [], ambiguous: [] };
     const seen = new Set<string>();
@@ -263,6 +374,19 @@ export class BulkApiService {
       }
     }
     return out;
+  }
+
+  /** One /v2025/identities list call (empty on failure: the fallbacks still run). */
+  private identities(filter: string): Promise<Row[]> {
+    return retry(() => this.plugin.get<Row[]>(`/v2025/identities?limit=250&filters=${encodeURIComponent(filter)}`))
+      .then((rows) => rows ?? [])
+      .catch(() => []);
+  }
+
+  private accounts(filter: string): Promise<Row[]> {
+    return retry(() => this.plugin.get<Row[]>(`/v3/accounts?limit=250&filters=${encodeURIComponent(filter)}`))
+      .then((rows) => rows ?? [])
+      .catch(() => []);
   }
 
   // ── Catalog ──────────────────────────────────────────────────────────────
@@ -384,10 +508,17 @@ export class BulkApiService {
     return this.plugin.get<GenericApproval>(`/v2025/generic-approvals/${encodeURIComponent(id)}`);
   }
 
-  async myAccessRequests(requesterId: string): Promise<AccessRequestStatus[]> {
-    return (await this.plugin.get<AccessRequestStatus[]>(
-      `/v3/access-request-status?requested-by=${encodeURIComponent(requesterId)}&limit=250&sorters=-created`,
-    )) ?? [];
+  /** The user's access requests, newest first: up to `max` (pages of 250, so a 600-person request fits). */
+  async myAccessRequests(requesterId: string, max = 1000): Promise<AccessRequestStatus[]> {
+    const rows: AccessRequestStatus[] = [];
+    for (let offset = 0; offset < max; offset += 250) {
+      const page = await this.plugin.get<AccessRequestStatus[]>(
+        `/v3/access-request-status?requested-by=${encodeURIComponent(requesterId)}&limit=250&offset=${offset}&sorters=-created`,
+      );
+      rows.push(...(page ?? []));
+      if (!page || page.length < 250) break;
+    }
+    return rows;
   }
 }
 

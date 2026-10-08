@@ -138,6 +138,21 @@ def test_committed_runtime_config_is_the_neutral_example():
     assert committed["workflowId"] is None
 
 
+def test_runtime_config_carries_the_limits_and_temporary_access_settings():
+    runtime = lib.runtime_config(config.load(EXAMPLE))
+    assert runtime["peopleMax"] is None                          # no people limit by default
+    assert runtime["partSize"] == config.LOOP_MAX == 250
+    assert runtime["temporary"] == {"enabled": True, "allow": ["duration", "endDate"],
+                                    "units": ["HOURS", "DAYS", "WEEKS", "MONTHS"], "maxDays": None}
+    cfg = config.from_dict({**json.loads(EXAMPLE.read_text()),
+                            "people": {"max": 600, "partSize": 100},
+                            "temporaryAccess": {"enabled": False, "allow": ["duration"], "units": ["DAYS"], "maxDays": 90}})
+    runtime = lib.runtime_config(cfg)
+    assert (runtime["peopleMax"], runtime["partSize"]) == (600, 100)
+    assert runtime["temporary"] == {"enabled": False, "allow": ["duration"], "units": ["DAYS"], "maxDays": 90}
+    json.dumps(runtime)                                          # plain JSON (no tuples)
+
+
 def test_committed_manifest_matches_the_example_config():
     assert json.loads((PLUGIN / lib.MANIFEST).read_text()) == lib.manifest(config.load(EXAMPLE))
 
@@ -186,3 +201,21 @@ def test_deploy_keeps_the_plugin_private_on_every_update(tenant, tmp_path, monke
     monkeypatch.setattr(lib, "find_plugin", lambda cfg, workdir: None)
     assert install.main(["--config", str(EXAMPLE), "--workdir", str(tmp_path), "--deploy", "--public"]) == 0
     assert calls[0] == ["ui-plugins", "create"]
+
+
+def test_deploy_visibility_defaults_to_the_config(tenant, tmp_path, monkeypatch):
+    (tmp_path / "node_modules").mkdir()
+    calls = []
+    monkeypatch.setattr(install.subprocess, "run", lambda *a, **k: None)
+    monkeypatch.setattr(lib, "sail", lambda cfg, args, workdir, **k: calls.append(args) or type("P", (), {"stdout": ""})())
+    monkeypatch.setattr(lib, "find_plugin", lambda cfg, workdir: {"id": "p-1", "alias": cfg.plugin_alias})
+    public_cfg = tmp_path / "public.json"
+    data = json.loads(EXAMPLE.read_text())
+    public_cfg.write_text(json.dumps({**data, "plugin": {**data["plugin"], "public": True}}))
+    assert install.main(["--config", str(public_cfg), "--workdir", str(tmp_path), "--deploy"]) == 0
+    assert calls[0] == ["ui-plugins", "push-manifest"]                       # plugin.public: true
+    calls.clear()
+    assert install.main(["--config", str(public_cfg), "--workdir", str(tmp_path), "--deploy", "--private"]) == 0
+    assert calls[0] == ["ui-plugins", "push-manifest", "--private"]          # the flag wins
+    with pytest.raises(SystemExit):
+        install.main(["--config", str(public_cfg), "--public", "--private"])

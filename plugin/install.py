@@ -12,7 +12,8 @@ What it does, idempotently and by prefixed name:
   2. Writes public/bulk-access.config.json (workflow name and ID, INC rule, limits,
      catalog filter) and sp-ui-plugin.json (alias and name from the config).
   3. With --deploy: `npm run build`, then `sail ui-plugins create --private` (first
-     time only, push-manifest after that) and `sail ui-plugins upload`.
+     time only, push-manifest after that) and `sail ui-plugins upload`. The plugin is
+     private unless the config's `plugin.public` is true or --public is given.
      --workdir builds another copy of this folder (one that has node_modules); the
      generated files are then written there instead of here.
 """
@@ -35,11 +36,16 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--deploy", action="store_true", help="also build the plugin and upload it with the SailPoint CLI")
     ap.add_argument("--workdir", default=str(lib.PLUGIN_DIR),
                     help="Angular project to build and upload (default: this folder)")
-    ap.add_argument("--public", action="store_true",
-                    help="with --deploy: make the plugin visible to everyone, not just you (default: private)")
+    seen = ap.add_mutually_exclusive_group()
+    seen.add_argument("--public", dest="public", action="store_true", default=None,
+                      help="with --deploy: make the plugin visible to everyone, not just you "
+                           "(default: the config's plugin.public, which defaults to false)")
+    seen.add_argument("--private", dest="public", action="store_false", default=None,
+                      help="with --deploy: keep the plugin private to you even if plugin.public is true")
     a = ap.parse_args(argv)
 
     cfg = config_mod.load(a.config)
+    public = cfg.plugin_public if a.public is None else a.public
     tenant = lib.Tenant.from_env(cfg.env_file)
     me = lib.whoami(tenant)
     owner_id = cfg.owner_id or me["id"]
@@ -57,7 +63,7 @@ def main(argv: list[str] | None = None) -> int:
         print(f"\n== {lib.MANIFEST} ==\n{definitions.pretty(lib.manifest(cfg))}")
         if a.deploy:
             print(f"\n== Deploy (in {workdir}) ==\nnpm run build\n"
-                  f"sail ui-plugins create|push-manifest {'' if a.public else '--private'}  (create only if alias {cfg.plugin_alias!r} is new)\n"
+                  f"sail ui-plugins create|push-manifest {'' if public else '--private'}  (create only if alias {cfg.plugin_alias!r} is new)\n"
                   "sail ui-plugins upload")
         print("\nDry run: nothing was changed.")
         return 0
@@ -88,11 +94,11 @@ def main(argv: list[str] | None = None) -> int:
         plugin = lib.find_plugin(cfg, workdir)
         # push-manifest replaces the whole manifest, visibility included, so --private
         # must be repeated on every update or the plugin becomes visible to everyone.
-        visibility = [] if a.public else ["--private"]
+        visibility = [] if public else ["--private"]
         if plugin:
             lib.sail(cfg, ["ui-plugins", "push-manifest", *visibility], workdir)
             print(f"Plugin manifest pushed: {plugin.get('id')}  alias {cfg.plugin_alias}"
-                  + ("  (visible to everyone)" if a.public else "  (private to you)"))
+                  + ("  (visible to everyone)" if public else "  (private to you)"))
         else:
             print(lib.sail(cfg, ["ui-plugins", "create", *visibility], workdir).stdout.strip())
         print(lib.sail(cfg, ["ui-plugins", "upload"], workdir).stdout.strip())

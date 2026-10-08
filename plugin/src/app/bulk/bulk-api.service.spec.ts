@@ -3,7 +3,7 @@ import { SailpointPluginService } from '@core';
 
 import { DEMO_CONFIG } from '../demo/fixtures';
 import { routedPlugin } from '../testing/plugin.testing';
-import { BulkApiService, escapeQuery, splitPasted } from './bulk-api.service';
+import { batches, BulkApiService, escapeQuery, pool, retry, splitPasted, type BulkInput } from './bulk-api.service';
 
 function setup(routes: Record<string, unknown>) {
   const plugin = routedPlugin(routes);
@@ -16,9 +16,10 @@ const ALAN = '0123456789abcdef0123456789abcdef';
 describe('BulkApiService', () => {
   it('starts the workflow through the test endpoint with the trigger contract', async () => {
     const { api, plugin } = setup({ '/v3/workflows/wf-1/test': { workflowExecutionId: 'exec-1' } });
-    const input = {
+    const input: BulkInput = {
       people: [ALAN], items: [{ id: 'ap-1', type: 'ACCESS_PROFILE' as const, name: 'ACME Bulk Test Access' }],
       approverId: 'boss', requesterId: 'me', inc: 'INC0012345', justification: 'why',
+      part: 1, parts: 1, partLabel: '', removeDuration: '', accessLabel: 'Permanent',
     };
     await expect(api.submit('wf-1', input)).resolves.toBe('exec-1');
     expect(plugin.post).toHaveBeenCalledWith('/v3/workflows/wf-1/test', { input });
@@ -54,6 +55,90 @@ describe('BulkApiService', () => {
     expect(result.ambiguous).toHaveLength(1);
     expect(result.ambiguous[0].token).toBe('andrea.kim@example.edu');
     expect(result.ambiguous[0].matches.map((m) => m.id).sort()).toEqual(['id-k1', 'id-k2']);
+  });
+
+  it('resolves a pasted list of 1,000+ in batches of about 50 per /v2025/identities call, with progress', async () => {
+    const ids = Array.from({ length: 600 }, (_, i) => i.toString(16).padStart(32, '0'));
+    const users = Array.from({ length: 500 }, (_, i) => `user${i}@example.edu`);
+    const known = (path: string) => {
+      const values = [...decodeURIComponent(path).matchAll(/"([^"]+)"/g)].map((m) => m[1]);
+      return values.filter((v) => v.endsWith('@example.edu') || /^[0-9a-f]{32}$/.test(v))
+        .map((v) => (v.includes('@') ? { id: `id-${v}`, alias: v.split('@')[0], emailAddress: v } : { id: v, name: v }));
+    };
+    const { api, plugin } = setup({ '/v2025/identities?': known, '/v3/search': [], '/v3/accounts': [] });
+    const progress: number[] = [];
+    const result = await api.resolvePeople([...ids, ...users, 'nobody'], (done) => progress.push(done));
+    expect(result.resolved).toHaveLength(1100);
+    expect(result.unresolved).toEqual(['nobody']);
+    const listCalls = plugin.get.mock.calls.map((c) => c[0] as string).filter((u) => u.startsWith('/v2025/identities?'));
+    expect(listCalls).toHaveLength(12 + 10 + 1);           // 600 IDs, 500 words, 1 word: at most 50 per call
+    for (const url of listCalls) expect(url.length).toBeLessThan(8000);
+    const idCall = decodeURIComponent(listCalls[0]);
+    expect(idCall).toContain('filters=id in ("');
+    expect(decodeURIComponent(listCalls[12])).toContain('alias eq "user0@example.edu" or email eq "user0@example.edu" or alias eq');
+    expect(progress[0]).toBe(0);
+    expect(progress.at(-1)).toBe(1101);
+    expect(progress).toEqual([...progress].sort((a, b) => a - b));   // only goes up
+  });
+
+  it('finds pasted IDs the identities list has not indexed yet through accounts, then one by one', async () => {
+    const fresh = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+    const lonely = 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+    const { api, plugin } = setup({
+      '/v2025/identities?': [],
+      '/v3/accounts': (path: string) => (decodeURIComponent(path).includes('identityId in')
+        ? [{ identityId: fresh, name: 'Yuki Tanaka', identity: { name: 'Yuki Tanaka' }, sourceName: 'ACME SaaS' }] : []),
+      [`/v2025/identities/${lonely}`]: { id: lonely, name: 'lonely', attributes: { displayName: 'Lonely One' } },
+      '/v2025/identities/': () => Promise.reject(Object.assign(new Error('nope'), { status: 404 })),
+    });
+    const result = await api.resolvePeople([fresh, lonely]);
+    expect(result.resolved.map((p) => [p.id, p.name])).toEqual([[fresh, 'Yuki Tanaka'], [lonely, 'Lonely One']]);
+    const singles = plugin.get.mock.calls.map((c) => c[0] as string).filter((u) => /^\/v2025\/identities\/[0-9a-f]/.test(u));
+    expect(singles).toEqual([`/v2025/identities/${lonely}`]);   // the account found the other one
+  });
+
+  it('cuts batches by count and by filter length, and runs jobs with limited concurrency', async () => {
+    expect(batches(Array.from({ length: 120 }, (_, i) => i), String, ',').map((b) => b.length)).toEqual([50, 50, 20]);
+    const long = Array.from({ length: 50 }, (_, i) => `${'x'.repeat(190)}${i}@example.edu`);
+    const cut = batches(long, (v) => `email eq "${v}"`, ' or ');
+    expect(cut.length).toBeGreaterThan(1);
+    expect(cut.flat()).toEqual(long);
+    for (const b of cut) expect(b.map((v) => `email eq "${v}"`).join(' or ').length).toBeLessThanOrEqual(4000);
+
+    let running = 0;
+    let peak = 0;
+    await pool(Array.from({ length: 10 }, () => async () => {
+      peak = Math.max(peak, ++running);
+      await new Promise((r) => setTimeout(r, 1));
+      running--;
+    }), 3);
+    expect(peak).toBe(3);
+  });
+
+  it('retries throttled calls (HTTP 429), and nothing else', async () => {
+    let n = 0;
+    await expect(retry(async () => {
+      if (++n < 3) throw Object.assign(new Error('slow down'), { status: 429 });
+      return 'ok';
+    }, 3, 1)).resolves.toBe('ok');
+    let m = 0;
+    await expect(retry(async () => {
+      m++;
+      throw Object.assign(new Error('bad'), { status: 400 });
+    }, 3, 1)).rejects.toThrow('bad');
+    expect(m).toBe(1);
+  });
+
+  it('pages through access requests so a 600-person request fits', async () => {
+    const row = (i: number) => ({ id: `r${i}`, name: 'X', type: 'ACCESS_PROFILE', state: 'REQUEST_COMPLETED' });
+    const { api, plugin } = setup({
+      '/v3/access-request-status': (path: string) => {
+        const offset = Number(new URLSearchParams(path.split('?')[1]).get('offset'));
+        return Array.from({ length: Math.max(0, Math.min(250, 600 - offset)) }, (_, i) => row(offset + i));
+      },
+    });
+    expect(await api.myAccessRequests('me')).toHaveLength(600);
+    expect(plugin.get).toHaveBeenCalledTimes(3);
   });
 
   it('searches identities and accounts, de-duplicated and sorted', async () => {
