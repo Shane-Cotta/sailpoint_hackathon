@@ -96,7 +96,7 @@ def test_plugin_workflow_reads_the_trigger_input_the_page_sends():
     steps = lib.plugin_workflow(cfg, "o", None)["definition"]["steps"]
     assert steps["Get Requester"]["attributes"]["id.$"] == "$.trigger.requesterId"
     assert steps["Bulk Approval"]["attributes"]["singleApproverIdentityId.$"] == "$.trigger.approverId"
-    assert steps["Bulk Approval"]["attributes"]["name"] == "Bulk access {{$.trigger.inc}}"
+    assert steps["Bulk Approval"]["attributes"]["name"] == "Bulk access {{$.trigger.inc}}{{$.trigger.partLabel}}"
     assert "Request Access" not in steps                         # dry-run mode requests nothing
     for step in steps.values():
         if step.get("type") == "failure":                        # SailPoint validator needs these (e300)

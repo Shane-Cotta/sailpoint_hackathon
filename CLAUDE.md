@@ -43,7 +43,9 @@ Human docs: `README.md` (overview), `INSTALL.md` (any tenant), `USAGE.md` (reque
   - A SELECT allows at most 30 selections.
   - STATIC select options may carry full `{id,type,name}` objects. INTERNAL selects ignore queries; SEARCH selects return names, not IDs.
   - The INTERNAL identity picker only matches complete usernames, and doesn't list uncorrelated identities.
-  - Through the API, a form may need two PATCHes to go ASSIGNED → IN_PROGRESS → SUBMITTED.
+  - Through the API, a form may need two PATCHes to go ASSIGNED → IN_PROGRESS → SUBMITTED. The API enforces REGEX rules on
+    submit: a failing value leaves the instance IN_PROGRESS with `formErrors`, and the workflow waits forever (cancel it).
+  - formData shapes: a TOGGLE arrives as a boolean, TEXT as a string, and a one-choice SELECT as a one-item list (steps accept it like a string).
 - **Generic Approval:**
   - `approvalType SINGLE`, `singleApproverCategory IDENTITY`, `singleApproverIdentityId.$`. Branch on `$.<step>.status` (`APPROVED`).
   - A self-approval is silently reassigned to some admin, so it's blocked up front.
@@ -65,6 +67,10 @@ Human docs: `README.md` (overview), `INSTALL.md` (any tenant), `USAGE.md` (reque
   expiry, and `requesterComment.comment` holds our comment. There's no `requestedObject`.
 - **Workflow definitions:** failure end steps need top-level `failureName` / `description`. Launcher-triggered workflows must filter
   `$[?(@.workflowId == '<own id>')]`.
+- **Variables and operators:**
+  - "Update Variable" only accepts variables from a step whose name starts with "Define Variable".
+  - A variable can't be defined as a literal `""`, but a replace transform that empties a placeholder works. Concatenation fails on numbers.
+  - `sp:compare-boolean` treats the string `"true"` as false.
 - **Launchers:**
   - Visible and launchable only for holders of the auto-created `assignedLaunchers` entitlement (on the IdentityNow source). The installer wraps it in a requestable "Launcher Access" profile.
   - Disabling the workflow disables its Launcher a moment later.
