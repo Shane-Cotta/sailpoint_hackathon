@@ -2,7 +2,7 @@
 """Bulk Access Request: one command for both deployments, driven by one config file.
 
     python bulkaccess.py show-config --config config/<tenant>.json
-    python bulkaccess.py apply       --config config/<tenant>.json [--dry-run] [--only launcher|plugin] [--deploy] [--grant me|<ids>]
+    python bulkaccess.py apply       --config config/<tenant>.json [--dry-run] [--only launcher|plugin] [--deploy [--workdir DIR]] [--grant me|<ids>]
     python bulkaccess.py status      --config config/<tenant>.json [--only launcher|plugin]
     python bulkaccess.py uninstall   --config config/<tenant>.json [--only launcher|plugin] [--yes]
 
@@ -199,6 +199,7 @@ def cmd_apply(cfg: Config, a: argparse.Namespace) -> int:
             rc |= run_script("launcher", "install", base + (["--grant", a.grant] if a.grant else []))
         else:
             rc |= run_script("plugin", "install", base + (["--deploy"] if a.deploy else [])
+                             + (["--workdir", a.workdir] if a.workdir else [])
                              + (["--public"] if cfg.plugin_public else []))
     return rc
 
@@ -245,6 +246,7 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--dry-run", action="store_true", help="print every body; change nothing")
     p.add_argument("--deploy", action="store_true", help="plugin: also build and upload it with the SailPoint CLI")
     p.add_argument("--grant", default="", help="Launcher: comma-separated identity IDs (or 'me') to give Launcher access")
+    p.add_argument("--workdir", default="", help="plugin: Angular project to build and upload (default: plugin/)")
     command("status", "Show what is installed (read-only).")
     p = command("uninstall", "Remove what apply created.")
     p.add_argument("--yes", action="store_true", help="actually delete (otherwise only shows what would go)")

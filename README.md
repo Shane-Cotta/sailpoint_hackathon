@@ -90,7 +90,17 @@ bulk-access-request/
 ## Tested
 Both deployments were installed in a live Identity Security Cloud tenant and verified end to end with test identities and a
 test access profile:
-- **Launcher:** dry-run approve and deny; live approve (one real request per person, carrying the INC, requester and
-  approver in its comment); live deny; self-approval stopped before any approval exists.
-- **UI plugin:** dry-run approve, live approve, live deny, invalid INC.
-- **Unit tests:** core 27, plugin installer 10, plugin UI 45 (`pytest`, `ng test`), none of them needing a tenant.
+- **Launcher:**
+  - Dry-run approve and deny.
+  - Live approve: one real request per person, carrying the INC, requester and approver in its comment.
+  - Live deny.
+  - Self-approval stopped before any approval exists.
+  - Temporary access: live, 1 day, with `removeDate` set to +1 day on every request. Permanent: no `removeDate`.
+  - An invalid duration, or one over `maxDays`, is stopped before the approval.
+- **UI plugin:**
+  - Dry-run approve, live approve, live deny, invalid INC.
+  - 250 people in one approval (the per-approval maximum).
+  - 5 people sent in parts of 2: three approvals `(1/3)`–`(3/3)` with one INC. The denied part requested nothing.
+  - Temporary by end date and by duration, with `removeDate` on every request. An invalid duration is stopped before the approval.
+  - 15 people in one live run.
+- **Unit tests:** core 215, plugin installer 12, plugin UI 84 (`pytest`, `ng test`), none of them needing a tenant.
