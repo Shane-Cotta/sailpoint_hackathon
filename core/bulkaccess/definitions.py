@@ -30,8 +30,7 @@ from .rules import APPROVAL_COMMENT_MAX, APPROVAL_DESCRIPTION_MAX
 
 VARIANTS = ("launcher", "plugin")
 
-# A form SELECT accepts at most 30 selections (hard UI limit in SailPoint forms).
-FORM_SELECT_MAX = 30
+from .config import FORM_SELECT_MAX  # noqa: E402  (re-exported; 30, SailPoint's form SELECT limit)
 
 # Form field keys (also the plugin's trigger input names).
 F_PEOPLE, F_ITEMS, F_APPROVER, F_INC, F_JUSTIFICATION = "people", "items", "approver", "inc", "justification"
@@ -47,8 +46,8 @@ def bulk_form(cfg: Config, owner_id: str, options: list[dict[str, Any]]) -> dict
     required = [{"validationType": "REQUIRED"}]
     elements = [
         {"id": "people", "key": F_PEOPLE, "elementType": "SELECT", "validations": required,
-         "config": {"label": "People who need the access", "maximum": min(cfg.people_max, FORM_SELECT_MAX), "forceSelect": True,
-                    "helpText": f"Search and add up to {min(cfg.people_max, FORM_SELECT_MAX)} people.",
+         "config": {"label": "People who need the access", "maximum": cfg.launcher_people_cap, "forceSelect": True,
+                    "helpText": f"Search and add up to {cfg.launcher_people_cap} people.",
                     "dataSource": {"dataSourceType": "INTERNAL", "config": {"objectType": "IDENTITY"}}}},
         {"id": "items", "key": F_ITEMS, "elementType": "SELECT", "validations": required,
          "config": {"label": "Access to request", "maximum": cfg.catalog_max_items, "forceSelect": True,

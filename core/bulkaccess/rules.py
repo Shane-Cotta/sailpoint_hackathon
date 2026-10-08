@@ -29,7 +29,7 @@ def validate_request(cfg: Config, *, requester_id: str, approver_id: str, people
     problems = []
     if not people:
         problems.append("Choose at least one person.")
-    if len(set(people)) > cfg.people_max:
+    if cfg.people_max is not None and len(set(people)) > cfg.people_max:
         problems.append(f"Choose at most {cfg.people_max} people.")
     if not items:
         problems.append("Choose at least one access item.")

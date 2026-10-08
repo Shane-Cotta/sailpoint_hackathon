@@ -186,7 +186,7 @@ def test_launcher_access_profile_wraps_the_assigned_launchers_entitlement():
     assert ap["requestable"] is True and ap["entitlements"] == [{"id": "e1", "type": "ENTITLEMENT", "name": "ACME Bulk Access Request"}]
     assert ap["source"]["id"] == "s1"
     assert ap["accessRequestConfig"]["approvalSchemes"] == [{"approverType": "MANAGER"}]
-    no_approval = definitions.launcher_access_profile(cfg_with(launcher__accessApproval="NONE"), "o", ent)
+    no_approval = definitions.launcher_access_profile(cfg_with(access__launcherApproval="NONE"), "o", ent)
     assert no_approval["accessRequestConfig"]["approvalSchemes"] == []
 
 
